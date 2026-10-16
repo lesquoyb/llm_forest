@@ -170,6 +170,25 @@ Carte des corrélations : `lambada/outputs/openai/embedding_correlations_1M.png`
 3. **Refaire l'analyse sur les modèles fine-tunés**, plus tard : un membre entraîné avec son masque s'adapte, ce que l'analyse du modèle de base ne voit pas.
 4. **Effets de Shapley**, seulement si une réponse rigoureuse dans la base d'origine est nécessaire. C'est coûteux : plusieurs heures pour le 1M.
 
+## Ce que dit la littérature
+
+Je n'ai pas trouvé d'analyse de sensibilité formelle (Morris ou Sobol) appliquée aux dimensions de l'embedding d'un modèle de langage. La recherche est rapide et non exhaustive. Les travaux voisins pointent trois choses : quelques dimensions dominent souvent, leur variance ne dit pas leur importance, et les axes ne sont pas arbitraires quand le modèle est entraîné avec Adam.
+
+| Travail | Méthode | Ce qu'ils ont trouvé | Conséquence pour nous |
+| --- | --- | --- | --- |
+| [Kovaleva et al. 2021, BERT Busters](https://arxiv.org/pdf/2105.06990) | Mise à zéro de 1 ou 2 dimensions repérées à leur amplitude | Jusqu'à −44 points sur BERT et ses variantes, moins sur GPT-2 | S'attendre à quelques dimensions dominantes |
+| [Puccetti et al. 2022](https://arxiv.org/abs/2205.11380v3) | Lien entre ces dimensions et les données d'entraînement | Leur amplitude suit la fréquence des tokens | Cohérent avec nos corrélations, créées par les tokens fréquents |
+| [Sun et al. 2024, Massive Activations](https://arxiv.org/pdf/2402.17762) | Repérage puis mise à zéro d'activations géantes | 2 dimensions fixes chez LLaMA2, qui servent de biais ; les supprimer casse le modèle | Même attente |
+| [Timkey & van Schijndel 2021, Rogue Dimensions](https://aclanthology.org/2021.emnlp-main.372) | Comparaison entre géométrie et comportement | 1 à 3 dimensions dominent la similarité, sans être celles qui comptent pour le comportement | Mesurer l'effet sur la perte, pas la variance |
+| [Ethayarajh 2019](https://ar5iv.arxiv.org/html/1909.00512) | Géométrie des représentations | Elles occupent un cône étroit (anisotropie) | Cohérent avec notre rang effectif d'environ 19 sur 64 |
+| [Mu & Viswanath 2018, All-but-the-Top](https://arxiv.org/pdf/1702.01417) | Retrait des directions principales dominantes | Les embeddings de mots s'améliorent | Piste pour masquer dans la base des composantes principales |
+| [Elhage et al. 2023, Privileged Bases](https://transformer-circuits.pub/2023/privileged-basis/index.html) et [Caples & Neuhaus](https://www.lesswrong.com/posts/yrhu6MeFddnGRSLtQ/adam-optimizer-causes-privileged-basis-in-transformer-lm) | Comparaison Adam contre SGD | Adam rend certaines coordonnées privilégiées, reproduit sur un TinyStories de 12M (non relu par des pairs) | La base brute a du sens pour TinyStories |
+| [Fel et al. 2021](https://arxiv.org/pdf/2111.04138) | Sobol avec des masques de perturbation, sur des images | Attributions efficaces, interactions comprises | Précédent pour utiliser le masque comme entrée |
+| [Ghorbani & Zou 2020, Neuron Shapley](https://proceedings.neurips.cc/paper/2020/hash/41c542dfe6e4fc3deb251d64cf6ed2e4-Abstract.html) | Valeurs de Shapley par ablation, accélérées par un bandit | Retirer 30 filtres détruit l'accuracy d'Inception-v3 | Recours si Morris montre beaucoup d'interactions, et pour le 28M |
+| [Iooss & Prieur](https://arxiv.org/pdf/1707.01334v6), dans la lignée d'Owen 2014 et de Song et al. 2016 | Effets de Shapley | La référence quand les entrées sont corrélées | Si une réponse rigoureuse en base brute est nécessaire |
+
+La pratique habituelle avec Morris est de cribler d'abord, puis de faire un Sobol sur les entrées retenues ([UQpy](https://uqpyproject.readthedocs.io/en/latest/sensitivity/morris.html)). C'est le plan suivi ici.
+
 ## Code et fichiers
 
 Le projet est dans `finetuningboolq/`, en deux dossiers indépendants (`boolq/` et `lambada/`). Il n'est pas versionné : un `git init` serait utile avant la suite.
