@@ -1,0 +1,302 @@
+{
+  "config": {
+    "models": [
+      "roneneldan/TinyStories-28M",
+      "roneneldan/TinyStories-33M"
+    ],
+    "epochs": 10,
+    "lr": 5e-05,
+    "batch_size": 16,
+    "max_length": 256,
+    "max_train_samples": null,
+    "max_eval_samples": null,
+    "seed": 0,
+    "forest_results": [
+      "C:\\Users\\baptiste\\Documents\\GitHub\\finetuningboolq\\lambada\\outputs\\forest_grid_100m\\results.json",
+      "C:\\Users\\baptiste\\Documents\\GitHub\\finetuningboolq\\lambada\\outputs\\forest_grid_28M\\results.json"
+    ],
+    "resume": true,
+    "output_dir": "C:\\Users\\baptiste\\Documents\\GitHub\\finetuningboolq\\lambada\\outputs\\single_models",
+    "quick": false
+  },
+  "rows": [
+    {
+      "name": "TinyStories-1M fine-tun\u00e9",
+      "params": 3745984,
+      "accuracy": 0.1296080714008537,
+      "perplexity": 25445.37364222784,
+      "train_time_s": 89.49410340003669,
+      "inference_time_s": 0.9692877000197768
+    },
+    {
+      "name": "For\u00eat 1M x10 (bagging)",
+      "params": 37459840,
+      "accuracy": 0.2126115638339154,
+      "perplexity": 5537.7623603198035,
+      "train_time_s": 790.0505883000267,
+      "inference_time_s": 11.545732819999103
+    },
+    {
+      "name": "For\u00eat 1M x10 (masque 12.5 %)",
+      "params": 37459840,
+      "accuracy": 0.2129220023282887,
+      "perplexity": 4900.560137143713,
+      "train_time_s": 655.984192124923,
+      "inference_time_s": 29.37211626000935
+    },
+    {
+      "name": "For\u00eat 1M x10 (masque 25 %)",
+      "params": 37459840,
+      "accuracy": 0.20118354675979822,
+      "perplexity": 5464.858881113364,
+      "train_time_s": 659.5892202550021,
+      "inference_time_s": 30.742038269992918
+    },
+    {
+      "name": "For\u00eat 1M x20 (bagging)",
+      "params": 74919680,
+      "accuracy": 0.2281722933643772,
+      "perplexity": 3828.0055559968628,
+      "train_time_s": 1578.5208991851482,
+      "inference_time_s": 23.091465639998205
+    },
+    {
+      "name": "For\u00eat 1M x20 (masque 12.5 %)",
+      "params": 74919680,
+      "accuracy": 0.23073341094295693,
+      "perplexity": 3264.8880227382765,
+      "train_time_s": 1312.5592751899617,
+      "inference_time_s": 58.7442325200187
+    },
+    {
+      "name": "For\u00eat 1M x20 (masque 25 %)",
+      "params": 74919680,
+      "accuracy": 0.2189173457508731,
+      "perplexity": 3541.9668771402926,
+      "train_time_s": 1319.6815503999765,
+      "inference_time_s": 61.484076539985836
+    },
+    {
+      "name": "For\u00eat 1M x100 (bagging)",
+      "params": 374598400,
+      "accuracy": 0.24136592937524254,
+      "perplexity": 2514.7616413853175,
+      "train_time_s": 7873.981010700576,
+      "inference_time_s": 115.45732819999101
+    },
+    {
+      "name": "For\u00eat 1M x100 (masque 12.5 %)",
+      "params": 374598400,
+      "accuracy": 0.24447031431897556,
+      "perplexity": 2051.1281103914725,
+      "train_time_s": 6562.372471999493,
+      "inference_time_s": 293.7211626000935
+    },
+    {
+      "name": "For\u00eat 1M x100 (masque 25 %)",
+      "params": 374598400,
+      "accuracy": 0.23360496701590996,
+      "perplexity": 2192.2848626315917,
+      "train_time_s": 6595.183558300021,
+      "inference_time_s": 307.4203826999292
+    },
+    {
+      "name": "For\u00eat 28M x10 (bagging)",
+      "params": 519879680,
+      "accuracy": 0.37118742724097786,
+      "perplexity": 257.0118824589712,
+      "train_time_s": 1120.5704016550328,
+      "inference_time_s": 35.4048073500162
+    },
+    {
+      "name": "For\u00eat 28M x10 (masque 12.5 %)",
+      "params": 519879680,
+      "accuracy": 0.3757469926270858,
+      "perplexity": 239.6068736624761,
+      "train_time_s": 1110.657802190003,
+      "inference_time_s": 34.41029999998864
+    },
+    {
+      "name": "For\u00eat 28M x20 (bagging)",
+      "params": 1039759360,
+      "accuracy": 0.3760186263096624,
+      "perplexity": 201.86013106428624,
+      "train_time_s": 2239.8825612000655,
+      "inference_time_s": 70.8096147000324
+    },
+    {
+      "name": "For\u00eat 28M x20 (masque 12.5 %)",
+      "params": 1039759360,
+      "accuracy": 0.38649592549476136,
+      "perplexity": 186.04416884670695,
+      "train_time_s": 2222.398095600074,
+      "inference_time_s": 68.82059999997728
+    },
+    {
+      "name": "TinyStories-28M seul",
+      "model": "roneneldan/TinyStories-28M",
+      "finetuned": false,
+      "params": 51987968,
+      "accuracy": 0.05820721769499418,
+      "perplexity": 5857474.196910113,
+      "train_time_s": 0.0,
+      "inference_time_s": 4.0100863999687135
+    },
+    {
+      "name": "TinyStories-28M fine-tun\u00e9",
+      "model": "roneneldan/TinyStories-28M",
+      "finetuned": true,
+      "params": 51987968,
+      "best_epoch": 2,
+      "accuracy": 0.27784245246410555,
+      "perplexity": 1361.590079138409,
+      "train_time_s": 221.77109689998906,
+      "inference_time_s": 4.024502199958079,
+      "history": {
+        "train_loss": [
+          5.276958880189852,
+          2.228761088912712,
+          0.7967202969705092,
+          0.3416604810974309,
+          0.21159965020749558,
+          0.1955869698936014,
+          0.22962695152913976,
+          0.20850334552568986,
+          0.20155889993273246,
+          0.1548320850046154
+        ],
+        "val_loss": [
+          4.641218172514699,
+          4.619337822566746,
+          4.754712685991212,
+          4.882865693462197,
+          4.722578447006734,
+          5.062273443895762,
+          5.150963171946731,
+          5.198793045468545,
+          5.204827339973746,
+          5.387095350225816
+        ],
+        "val_acc": [
+          0.2845496894409938,
+          0.2717391304347826,
+          0.2907608695652174,
+          0.28959627329192544,
+          0.32298136645962733,
+          0.26979813664596275,
+          0.2694099378881988,
+          0.2597049689440994,
+          0.2822204968944099,
+          0.24611801242236025
+        ],
+        "val_step": [
+          274,
+          548,
+          822,
+          1096,
+          1370,
+          1644,
+          1918,
+          2192,
+          2466,
+          2740
+        ],
+        "val_compute_s": [
+          18.3039416000247,
+          36.719038400100544,
+          55.1963601000607,
+          73.49985500006005,
+          92.15174830006436,
+          110.44529730011709,
+          128.73728510004003,
+          146.95706629997585,
+          165.19608199992217,
+          183.4462689999491
+        ]
+      }
+    },
+    {
+      "name": "TinyStories-33M seul",
+      "model": "roneneldan/TinyStories-33M",
+      "finetuned": false,
+      "params": 68514048,
+      "accuracy": 0.046565774155995346,
+      "perplexity": 14647602.521094443,
+      "train_time_s": 0.0,
+      "inference_time_s": 3.70981639996171
+    },
+    {
+      "name": "TinyStories-33M fine-tun\u00e9",
+      "model": "roneneldan/TinyStories-33M",
+      "finetuned": true,
+      "params": 68514048,
+      "best_epoch": 1,
+      "accuracy": 0.27745440434613894,
+      "perplexity": 1070.7273559058972,
+      "train_time_s": 230.96177420008462,
+      "inference_time_s": 3.7451781999552622,
+      "history": {
+        "train_loss": [
+          5.171345559944517,
+          1.5429737646553903,
+          0.4298180015598095,
+          0.1915292740657565,
+          0.13373040963206334,
+          0.08675630565747858,
+          0.04383448597530385,
+          0.03741176833830202,
+          0.41333290876116324,
+          0.5206451210868231
+        ],
+        "val_loss": [
+          4.526059045263268,
+          4.689027546700692,
+          4.703556300823358,
+          4.772301693732471,
+          4.7340443253248194,
+          4.8200751013192775,
+          4.862938434087295,
+          5.191832478586131,
+          5.526271476755168,
+          5.467717099709748
+        ],
+        "val_acc": [
+          0.2760093167701863,
+          0.2674689440993789,
+          0.2686335403726708,
+          0.28066770186335405,
+          0.2954192546583851,
+          0.2876552795031056,
+          0.2892080745341615,
+          0.2628105590062112,
+          0.23369565217391305,
+          0.23524844720496896
+        ],
+        "val_step": [
+          274,
+          548,
+          822,
+          1096,
+          1370,
+          1644,
+          1918,
+          2192,
+          2466,
+          2740
+        ],
+        "val_compute_s": [
+          19.708749999990687,
+          39.0414221000392,
+          58.37539300008211,
+          77.73400030005723,
+          97.13254120002966,
+          116.46710880007595,
+          135.96563720004633,
+          155.68414400005713,
+          175.36314110003877,
+          194.993233300047
+        ]
+      }
+    }
+  ]
+}

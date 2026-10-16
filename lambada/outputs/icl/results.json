@@ -1,0 +1,1691 @@
+{
+  "config": {
+    "models": [
+      "roneneldan/TinyStories-28M",
+      "roneneldan/TinyStories-33M"
+    ],
+    "shots": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "strategies": [
+      "fixed",
+      "random",
+      "similar"
+    ],
+    "mask_fractions": [
+      0.0,
+      0.125
+    ],
+    "n_members": 10,
+    "sizes": [
+      1,
+      5,
+      10
+    ],
+    "subsets_per_size": 10,
+    "max_length": 512,
+    "separator": "\n\n",
+    "batch_size": 16,
+    "test_half": "b",
+    "max_eval_samples": null,
+    "seed": 0,
+    "output_dir": "C:\\Users\\baptiste\\Documents\\GitHub\\finetuningboolq\\lambada\\outputs\\icl",
+    "resume": true,
+    "quick": false
+  },
+  "rows": [
+    {
+      "key": "roneneldan/TinyStories-1M|0|-|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 0,
+      "strategy": "-",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 0.0,
+      "prompt_length_mean": 80.19790454016298,
+      "prompt_length_max": 169,
+      "inference_time_per_member_s": 1.3380762999877334,
+      "by_size": {
+        "1": {
+          "accuracy": 0.017462165308498253,
+          "perplexity": 21998405.97639046,
+          "hard_accuracy": 0.017462165308498253
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|0|-|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 0,
+      "strategy": "-",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 0.0,
+      "prompt_length_mean": 80.19790454016298,
+      "prompt_length_max": 169,
+      "inference_time_per_member_s": 0.9326608499977738,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0008149010477299185,
+          "perplexity": 41127111.08013913,
+          "hard_accuracy": 0.0008149010477299185
+        },
+        "5": {
+          "accuracy": 0.0005044625533566162,
+          "perplexity": 7785249.152962663,
+          "hard_accuracy": 0.00019402405898331392
+        },
+        "10": {
+          "accuracy": 0.0,
+          "perplexity": 5281340.406282989,
+          "hard_accuracy": 0.00038804811796662784
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|1|fixed|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 1,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 161.09790454016297,
+      "prompt_length_max": 271,
+      "inference_time_per_member_s": 2.0113706000032834,
+      "by_size": {
+        "1": {
+          "accuracy": 0.006907256499805976,
+          "perplexity": 26486625.694172747,
+          "hard_accuracy": 0.006907256499805976
+        },
+        "5": {
+          "accuracy": 0.0073341094295692666,
+          "perplexity": 24501504.384544265,
+          "hard_accuracy": 0.006635622817229336
+        },
+        "10": {
+          "accuracy": 0.007372914241365929,
+          "perplexity": 24114689.26160594,
+          "hard_accuracy": 0.007372914241365929
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|1|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 1,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 161.09790454016297,
+      "prompt_length_max": 271,
+      "inference_time_per_member_s": 2.0110133000067436,
+      "by_size": {
+        "1": {
+          "accuracy": 0.00038804811796662784,
+          "perplexity": 50598663.1200784,
+          "hard_accuracy": 0.00038804811796662784
+        },
+        "5": {
+          "accuracy": 0.0,
+          "perplexity": 9533676.759345045,
+          "hard_accuracy": 3.8804811796662786e-05
+        },
+        "10": {
+          "accuracy": 0.0,
+          "perplexity": 6502063.4590239795,
+          "hard_accuracy": 0.00038804811796662784
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|1|random|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 1,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 163.05071788901824,
+      "prompt_length_max": 278,
+      "inference_time_per_member_s": 2.1804265399929137,
+      "by_size": {
+        "1": {
+          "accuracy": 0.007062475746992627,
+          "perplexity": 28261864.45546797,
+          "hard_accuracy": 0.007062475746992627
+        },
+        "5": {
+          "accuracy": 0.00795498641831587,
+          "perplexity": 25993774.357464112,
+          "hard_accuracy": 0.007644547923942569
+        },
+        "10": {
+          "accuracy": 0.007760962359332557,
+          "perplexity": 25687746.515720893,
+          "hard_accuracy": 0.008537058595265812
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|1|random|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 1,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 163.05071788901824,
+      "prompt_length_max": 278,
+      "inference_time_per_member_s": 2.1894525500014423,
+      "by_size": {
+        "1": {
+          "accuracy": 0.00015521924718665114,
+          "perplexity": 52718898.36693139,
+          "hard_accuracy": 0.00015521924718665114
+        },
+        "5": {
+          "accuracy": 0.0,
+          "perplexity": 9826111.3115916,
+          "hard_accuracy": 0.0
+        },
+        "10": {
+          "accuracy": 0.0,
+          "perplexity": 6686925.846531514,
+          "hard_accuracy": 0.0
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|1|similar|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 1,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 162.7826930539387,
+      "prompt_length_max": 334,
+      "inference_time_per_member_s": 2.4905172999715433,
+      "by_size": {
+        "1": {
+          "accuracy": 0.013969732246798603,
+          "perplexity": 25801465.556552403,
+          "hard_accuracy": 0.013969732246798603
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|1|similar|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 1,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 162.7826930539387,
+      "prompt_length_max": 334,
+      "inference_time_per_member_s": 2.3209369100048205,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0005820721769499418,
+          "perplexity": 50321126.34259454,
+          "hard_accuracy": 0.0005820721769499418
+        },
+        "5": {
+          "accuracy": 0.00015521924718665114,
+          "perplexity": 9360569.306117928,
+          "hard_accuracy": 3.8804811796662786e-05
+        },
+        "10": {
+          "accuracy": 0.00038804811796662784,
+          "perplexity": 6340615.845871779,
+          "hard_accuracy": 0.00038804811796662784
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|2|fixed|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 2,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 240.39790454016298,
+      "prompt_length_max": 345,
+      "inference_time_per_member_s": 3.276057189994026,
+      "by_size": {
+        "1": {
+          "accuracy": 0.007023670935195964,
+          "perplexity": 29442933.559699353,
+          "hard_accuracy": 0.007023670935195964
+        },
+        "5": {
+          "accuracy": 0.0077221575475358946,
+          "perplexity": 27373066.870354902,
+          "hard_accuracy": 0.007256499805975941
+        },
+        "10": {
+          "accuracy": 0.007760962359332557,
+          "perplexity": 27073692.72785205,
+          "hard_accuracy": 0.006596818005432673
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|2|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 2,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 240.39790454016298,
+      "prompt_length_max": 345,
+      "inference_time_per_member_s": 3.282512080005836,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0003104384943733023,
+          "perplexity": 53272687.1202081,
+          "hard_accuracy": 0.0003104384943733023
+        },
+        "5": {
+          "accuracy": 0.0,
+          "perplexity": 9944547.752459189,
+          "hard_accuracy": 0.0
+        },
+        "10": {
+          "accuracy": 0.0,
+          "perplexity": 6717462.561306764,
+          "hard_accuracy": 0.0
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|2|random|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 2,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.9544819557625,
+      "prompt_length_max": 398,
+      "inference_time_per_member_s": 3.73081433000043,
+      "by_size": {
+        "1": {
+          "accuracy": 0.007450523864959255,
+          "perplexity": 29831148.285116486,
+          "hard_accuracy": 0.007450523864959255
+        },
+        "5": {
+          "accuracy": 0.007566938300349243,
+          "perplexity": 27536219.862564534,
+          "hard_accuracy": 0.007411719053162592
+        },
+        "10": {
+          "accuracy": 0.007760962359332557,
+          "perplexity": 27225388.218204573,
+          "hard_accuracy": 0.007372914241365929
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|2|random|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 2,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.9544819557625,
+      "prompt_length_max": 398,
+      "inference_time_per_member_s": 3.734052120009437,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0002328288707799767,
+          "perplexity": 54642815.620968774,
+          "hard_accuracy": 0.0002328288707799767
+        },
+        "5": {
+          "accuracy": 0.0,
+          "perplexity": 10102573.622797705,
+          "hard_accuracy": 0.0
+        },
+        "10": {
+          "accuracy": 0.0,
+          "perplexity": 6823687.290952104,
+          "hard_accuracy": 0.0
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|2|similar|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 2,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.720993403182,
+      "prompt_length_max": 466,
+      "inference_time_per_member_s": 4.221511399955489,
+      "by_size": {
+        "1": {
+          "accuracy": 0.01086534730306558,
+          "perplexity": 27218283.85368691,
+          "hard_accuracy": 0.01086534730306558
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|2|similar|0.125|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 2,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.720993403182,
+      "prompt_length_max": 466,
+      "inference_time_per_member_s": 4.039477799995803,
+      "by_size": {
+        "1": {
+          "accuracy": 0.00038804811796662784,
+          "perplexity": 52172402.701619975,
+          "hard_accuracy": 0.00038804811796662784
+        },
+        "5": {
+          "accuracy": 3.8804811796662786e-05,
+          "perplexity": 9625468.495302208,
+          "hard_accuracy": 3.8804811796662786e-05
+        },
+        "10": {
+          "accuracy": 0.0,
+          "perplexity": 6486218.412033494,
+          "hard_accuracy": 0.00038804811796662784
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-1M|4|fixed|0|512",
+      "model": "roneneldan/TinyStories-1M",
+      "shots": 4,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.99965075669383,
+      "prompt_length_mean": 406.9649204501358,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 7.630582200002391,
+      "by_size": {
+        "1": {
+          "accuracy": 0.006014745828482731,
+          "perplexity": 31815711.523806673,
+          "hard_accuracy": 0.006014745828482731
+        },
+        "5": {
+          "accuracy": 0.0067520372526193246,
+          "perplexity": 28822529.80885261,
+          "hard_accuracy": 0.006169965075669383
+        },
+        "10": {
+          "accuracy": 0.006596818005432673,
+          "perplexity": 28937260.815025277,
+          "hard_accuracy": 0.006984866123399301
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|0|-|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 0,
+      "strategy": "-",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 0.0,
+      "prompt_length_mean": 80.19790454016298,
+      "prompt_length_max": 169,
+      "inference_time_per_member_s": 3.56714059994556,
+      "by_size": {
+        "1": {
+          "accuracy": 0.05820721769499418,
+          "perplexity": 5857474.539404258,
+          "hard_accuracy": 0.05820721769499418
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|0|-|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 0,
+      "strategy": "-",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 0.0,
+      "prompt_length_mean": 80.19790454016298,
+      "prompt_length_max": 169,
+      "inference_time_per_member_s": 3.434762480005156,
+      "by_size": {
+        "1": {
+          "accuracy": 0.04447031431897555,
+          "perplexity": 4259454.866236748,
+          "hard_accuracy": 0.04447031431897555
+        },
+        "5": {
+          "accuracy": 0.06596818005432674,
+          "perplexity": 660088.9270545503,
+          "hard_accuracy": 0.05487000388048118
+        },
+        "10": {
+          "accuracy": 0.07140085370585952,
+          "perplexity": 440231.58832231705,
+          "hard_accuracy": 0.06325184322856034
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|1|fixed|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 1,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 161.09790454016297,
+      "prompt_length_max": 271,
+      "inference_time_per_member_s": 6.878210469998885,
+      "by_size": {
+        "1": {
+          "accuracy": 0.031160263872720216,
+          "perplexity": 18788265.59960426,
+          "hard_accuracy": 0.031160263872720216
+        },
+        "5": {
+          "accuracy": 0.043655413271245634,
+          "perplexity": 5778826.409979842,
+          "hard_accuracy": 0.038804811796662786
+        },
+        "10": {
+          "accuracy": 0.04346138921226232,
+          "perplexity": 4640573.555841165,
+          "hard_accuracy": 0.041133100504462554
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|1|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 1,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 161.09790454016297,
+      "prompt_length_max": 271,
+      "inference_time_per_member_s": 6.879428380005993,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0186651144741948,
+          "perplexity": 15415830.174250832,
+          "hard_accuracy": 0.0186651144741948
+        },
+        "5": {
+          "accuracy": 0.03632130384167637,
+          "perplexity": 1740081.2388221691,
+          "hard_accuracy": 0.02285603414823438
+        },
+        "10": {
+          "accuracy": 0.042297244858362434,
+          "perplexity": 1063570.1284097594,
+          "hard_accuracy": 0.030267753201396973
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|1|random|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 1,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 163.05071788901824,
+      "prompt_length_max": 278,
+      "inference_time_per_member_s": 7.457059070002288,
+      "by_size": {
+        "1": {
+          "accuracy": 0.030849825378346914,
+          "perplexity": 20017364.872739825,
+          "hard_accuracy": 0.030849825378346914
+        },
+        "5": {
+          "accuracy": 0.04031819945673264,
+          "perplexity": 6244374.109386113,
+          "hard_accuracy": 0.035273573923166476
+        },
+        "10": {
+          "accuracy": 0.04346138921226232,
+          "perplexity": 4923308.142650795,
+          "hard_accuracy": 0.038804811796662786
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|1|random|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 1,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 163.05071788901824,
+      "prompt_length_max": 278,
+      "inference_time_per_member_s": 7.499968980008271,
+      "by_size": {
+        "1": {
+          "accuracy": 0.019053162592161426,
+          "perplexity": 15983518.246345246,
+          "hard_accuracy": 0.019053162592161426
+        },
+        "5": {
+          "accuracy": 0.03570042685292976,
+          "perplexity": 1809047.6420206132,
+          "hard_accuracy": 0.02173069460613116
+        },
+        "10": {
+          "accuracy": 0.0446255335661622,
+          "perplexity": 1096516.7026837147,
+          "hard_accuracy": 0.029879705083430345
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|1|similar|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 1,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 162.7826930539387,
+      "prompt_length_max": 334,
+      "inference_time_per_member_s": 8.129422399913892,
+      "by_size": {
+        "1": {
+          "accuracy": 0.03143189755529686,
+          "perplexity": 14869046.15359512,
+          "hard_accuracy": 0.03143189755529686
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|1|similar|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 1,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 162.7826930539387,
+      "prompt_length_max": 334,
+      "inference_time_per_member_s": 7.959474440000486,
+      "by_size": {
+        "1": {
+          "accuracy": 0.02211874272409779,
+          "perplexity": 12254778.447698891,
+          "hard_accuracy": 0.02211874272409779
+        },
+        "5": {
+          "accuracy": 0.03927046953822274,
+          "perplexity": 1703602.2908105464,
+          "hard_accuracy": 0.025300737291424135
+        },
+        "10": {
+          "accuracy": 0.04074505238649592,
+          "perplexity": 1089067.1940798783,
+          "hard_accuracy": 0.03298409002716337
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|2|fixed|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 2,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 240.39790454016298,
+      "prompt_length_max": 345,
+      "inference_time_per_member_s": 10.810367659991607,
+      "by_size": {
+        "1": {
+          "accuracy": 0.02394256887854094,
+          "perplexity": 25303125.911016356,
+          "hard_accuracy": 0.02394256887854094
+        },
+        "5": {
+          "accuracy": 0.03573923166472642,
+          "perplexity": 7805405.512155635,
+          "hard_accuracy": 0.0306558013193636
+        },
+        "10": {
+          "accuracy": 0.03608847497089639,
+          "perplexity": 6248458.284034184,
+          "hard_accuracy": 0.03298409002716337
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|2|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 2,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 240.39790454016298,
+      "prompt_length_max": 345,
+      "inference_time_per_member_s": 10.817242489999625,
+      "by_size": {
+        "1": {
+          "accuracy": 0.013077221575475358,
+          "perplexity": 21851668.31798384,
+          "hard_accuracy": 0.013077221575475358
+        },
+        "5": {
+          "accuracy": 0.027008149010477298,
+          "perplexity": 2528683.260441949,
+          "hard_accuracy": 0.014823438106325184
+        },
+        "10": {
+          "accuracy": 0.03259604190919674,
+          "perplexity": 1597237.072424153,
+          "hard_accuracy": 0.02211874272409779
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|2|random|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 2,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.9544819557625,
+      "prompt_length_max": 398,
+      "inference_time_per_member_s": 11.90472195999464,
+      "by_size": {
+        "1": {
+          "accuracy": 0.02479627473806752,
+          "perplexity": 26480077.583017707,
+          "hard_accuracy": 0.02479627473806752
+        },
+        "5": {
+          "accuracy": 0.03341094295692666,
+          "perplexity": 7919722.03578407,
+          "hard_accuracy": 0.02871556072953046
+        },
+        "10": {
+          "accuracy": 0.03570042685292976,
+          "perplexity": 6168535.942400321,
+          "hard_accuracy": 0.03104384943733023
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|2|random|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 2,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.9544819557625,
+      "prompt_length_max": 398,
+      "inference_time_per_member_s": 11.90874005999649,
+      "by_size": {
+        "1": {
+          "accuracy": 0.012883197516492044,
+          "perplexity": 22636149.30758339,
+          "hard_accuracy": 0.012883197516492044
+        },
+        "5": {
+          "accuracy": 0.02483507954986418,
+          "perplexity": 2723984.594068001,
+          "hard_accuracy": 0.014280170741171905
+        },
+        "10": {
+          "accuracy": 0.02910360884749709,
+          "perplexity": 1666640.3267761574,
+          "hard_accuracy": 0.020566550252231277
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|2|similar|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 2,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.720993403182,
+      "prompt_length_max": 466,
+      "inference_time_per_member_s": 12.76861650007777,
+      "by_size": {
+        "1": {
+          "accuracy": 0.025611175785797437,
+          "perplexity": 19581962.151380174,
+          "hard_accuracy": 0.025611175785797437
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|2|similar|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 2,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.720993403182,
+      "prompt_length_max": 466,
+      "inference_time_per_member_s": 12.56336006000638,
+      "by_size": {
+        "1": {
+          "accuracy": 0.016880093131548313,
+          "perplexity": 16801872.48279294,
+          "hard_accuracy": 0.016880093131548313
+        },
+        "5": {
+          "accuracy": 0.028637951105937136,
+          "perplexity": 2444971.5840458754,
+          "hard_accuracy": 0.018859138533178114
+        },
+        "10": {
+          "accuracy": 0.03104384943733023,
+          "perplexity": 1561820.6867652335,
+          "hard_accuracy": 0.02483507954986418
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|4|fixed|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 4,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.99965075669383,
+      "prompt_length_mean": 406.9649204501358,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 19.72929017000133,
+      "by_size": {
+        "1": {
+          "accuracy": 0.029724485836243694,
+          "perplexity": 26493801.42431348,
+          "hard_accuracy": 0.029724485836243694
+        },
+        "5": {
+          "accuracy": 0.04221963523476911,
+          "perplexity": 7705645.462645258,
+          "hard_accuracy": 0.03538998835855646
+        },
+        "10": {
+          "accuracy": 0.04540162980209546,
+          "perplexity": 6187076.514372829,
+          "hard_accuracy": 0.039968956150562666
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|4|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 4,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.99965075669383,
+      "prompt_length_mean": 406.9649204501358,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 19.67364338999614,
+      "by_size": {
+        "1": {
+          "accuracy": 0.015832363213038415,
+          "perplexity": 22678433.406764094,
+          "hard_accuracy": 0.015832363213038415
+        },
+        "5": {
+          "accuracy": 0.028909584788513777,
+          "perplexity": 2856092.1401047553,
+          "hard_accuracy": 0.01823826154443151
+        },
+        "10": {
+          "accuracy": 0.03143189755529686,
+          "perplexity": 1862295.1231916791,
+          "hard_accuracy": 0.02677532013969732
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|4|random|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 4,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.996235933255724,
+      "prompt_length_mean": 411.2545595653861,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 21.56879669999471,
+      "by_size": {
+        "1": {
+          "accuracy": 0.025649980597594102,
+          "perplexity": 29297444.86341658,
+          "hard_accuracy": 0.025649980597594102
+        },
+        "5": {
+          "accuracy": 0.03888242142025611,
+          "perplexity": 8048850.4832344055,
+          "hard_accuracy": 0.0306558013193636
+        },
+        "10": {
+          "accuracy": 0.03958090803259604,
+          "perplexity": 6218527.125865552,
+          "hard_accuracy": 0.03453628249902988
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|4|random|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 4,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.996235933255724,
+      "prompt_length_mean": 411.2545595653861,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 21.641115320008247,
+      "by_size": {
+        "1": {
+          "accuracy": 0.01435778036476523,
+          "perplexity": 24891370.823982127,
+          "hard_accuracy": 0.01435778036476523
+        },
+        "5": {
+          "accuracy": 0.025106713232440823,
+          "perplexity": 3303858.9733809964,
+          "hard_accuracy": 0.015793558401241754
+        },
+        "10": {
+          "accuracy": 0.028327512611563833,
+          "perplexity": 2105198.78028921,
+          "hard_accuracy": 0.02173069460613116
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|4|similar|0|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 4,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 3.9848661233993017,
+      "prompt_length_mean": 409.2731858750485,
+      "prompt_length_max": 511,
+      "inference_time_per_member_s": 22.069654799997807,
+      "by_size": {
+        "1": {
+          "accuracy": 0.026387272021730693,
+          "perplexity": 24597270.943295166,
+          "hard_accuracy": 0.026387272021730693
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-28M|4|similar|0.125|512",
+      "model": "roneneldan/TinyStories-28M",
+      "shots": 4,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.9848661233993017,
+      "prompt_length_mean": 409.2731858750485,
+      "prompt_length_max": 511,
+      "inference_time_per_member_s": 21.636200889991596,
+      "by_size": {
+        "1": {
+          "accuracy": 0.015405510283275126,
+          "perplexity": 20721469.015726708,
+          "hard_accuracy": 0.015405510283275126
+        },
+        "5": {
+          "accuracy": 0.025999223903764065,
+          "perplexity": 3395680.482221685,
+          "hard_accuracy": 0.019130772215754755
+        },
+        "10": {
+          "accuracy": 0.027939464493597205,
+          "perplexity": 2273658.388625181,
+          "hard_accuracy": 0.023282887077997673
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|0|-|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 0,
+      "strategy": "-",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 0.0,
+      "prompt_length_mean": 80.19790454016298,
+      "prompt_length_max": 169,
+      "inference_time_per_member_s": 3.4059174000285566,
+      "by_size": {
+        "1": {
+          "accuracy": 0.046565774155995346,
+          "perplexity": 14647601.876035845,
+          "hard_accuracy": 0.046565774155995346
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|0|-|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 0,
+      "strategy": "-",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 0.0,
+      "prompt_length_mean": 80.19790454016298,
+      "prompt_length_max": 169,
+      "inference_time_per_member_s": 3.413155609997921,
+      "by_size": {
+        "1": {
+          "accuracy": 0.034807916181606516,
+          "perplexity": 8163121.8939118385,
+          "hard_accuracy": 0.034807916181606516
+        },
+        "5": {
+          "accuracy": 0.05110593713620489,
+          "perplexity": 1303047.9505659956,
+          "hard_accuracy": 0.04051222351571595
+        },
+        "10": {
+          "accuracy": 0.05471478463329453,
+          "perplexity": 896864.475383234,
+          "hard_accuracy": 0.0473418703919286
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|1|fixed|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 1,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 161.09790454016297,
+      "prompt_length_max": 271,
+      "inference_time_per_member_s": 6.228031099995133,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0239813736903376,
+          "perplexity": 34864764.57307254,
+          "hard_accuracy": 0.0239813736903376
+        },
+        "5": {
+          "accuracy": 0.03410942956926659,
+          "perplexity": 11888651.38514461,
+          "hard_accuracy": 0.027590221187427242
+        },
+        "10": {
+          "accuracy": 0.03919285991462942,
+          "perplexity": 9296949.02603609,
+          "hard_accuracy": 0.033372138145129994
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|1|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 1,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 161.09790454016297,
+      "prompt_length_max": 271,
+      "inference_time_per_member_s": 6.227242649998516,
+      "by_size": {
+        "1": {
+          "accuracy": 0.01641443538998836,
+          "perplexity": 22660471.47261746,
+          "hard_accuracy": 0.01641443538998836
+        },
+        "5": {
+          "accuracy": 0.03092743500194024,
+          "perplexity": 2919336.1520249923,
+          "hard_accuracy": 0.019363601086534732
+        },
+        "10": {
+          "accuracy": 0.03453628249902988,
+          "perplexity": 1873755.5405513225,
+          "hard_accuracy": 0.02677532013969732
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|1|random|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 1,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 163.05071788901824,
+      "prompt_length_max": 278,
+      "inference_time_per_member_s": 6.600952299998608,
+      "by_size": {
+        "1": {
+          "accuracy": 0.02405898331393093,
+          "perplexity": 34992613.433816165,
+          "hard_accuracy": 0.02405898331393093
+        },
+        "5": {
+          "accuracy": 0.03329452852153667,
+          "perplexity": 12159780.303753851,
+          "hard_accuracy": 0.028948389600310438
+        },
+        "10": {
+          "accuracy": 0.03453628249902988,
+          "perplexity": 9687897.529843919,
+          "hard_accuracy": 0.03181994567326348
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|1|random|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 1,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 163.05071788901824,
+      "prompt_length_max": 278,
+      "inference_time_per_member_s": 6.607944899995346,
+      "by_size": {
+        "1": {
+          "accuracy": 0.014474194800155219,
+          "perplexity": 22788287.038235832,
+          "hard_accuracy": 0.014474194800155219
+        },
+        "5": {
+          "accuracy": 0.02813348855258052,
+          "perplexity": 2935214.3847501497,
+          "hard_accuracy": 0.018315871168024835
+        },
+        "10": {
+          "accuracy": 0.03259604190919674,
+          "perplexity": 1904898.2757530126,
+          "hard_accuracy": 0.026387272021730693
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|1|similar|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 1,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 162.7826930539387,
+      "prompt_length_max": 334,
+      "inference_time_per_member_s": 6.961272499989718,
+      "by_size": {
+        "1": {
+          "accuracy": 0.0306558013193636,
+          "perplexity": 27773562.681216307,
+          "hard_accuracy": 0.0306558013193636
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|1|similar|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 1,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 1.0,
+      "prompt_length_mean": 162.7826930539387,
+      "prompt_length_max": 334,
+      "inference_time_per_member_s": 6.893882909999229,
+      "by_size": {
+        "1": {
+          "accuracy": 0.02091579355840124,
+          "perplexity": 17255920.346144754,
+          "hard_accuracy": 0.02091579355840124
+        },
+        "5": {
+          "accuracy": 0.034730306558013194,
+          "perplexity": 2687122.535703623,
+          "hard_accuracy": 0.024524641055490883
+        },
+        "10": {
+          "accuracy": 0.03608847497089639,
+          "perplexity": 1825875.2289684494,
+          "hard_accuracy": 0.03143189755529686
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|2|fixed|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 2,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 240.39790454016298,
+      "prompt_length_max": 345,
+      "inference_time_per_member_s": 9.047139859991148,
+      "by_size": {
+        "1": {
+          "accuracy": 0.019247186651144742,
+          "perplexity": 37395423.11932587,
+          "hard_accuracy": 0.019247186651144742
+        },
+        "5": {
+          "accuracy": 0.028599146294140475,
+          "perplexity": 13109365.98633427,
+          "hard_accuracy": 0.024369421808304228
+        },
+        "10": {
+          "accuracy": 0.030267753201396973,
+          "perplexity": 10591009.548826413,
+          "hard_accuracy": 0.02405898331393093
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|2|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 2,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 240.39790454016298,
+      "prompt_length_max": 345,
+      "inference_time_per_member_s": 9.05702454999555,
+      "by_size": {
+        "1": {
+          "accuracy": 0.01156383391540551,
+          "perplexity": 26045023.14893223,
+          "hard_accuracy": 0.01156383391540551
+        },
+        "5": {
+          "accuracy": 0.02464105549088087,
+          "perplexity": 3313343.4997398085,
+          "hard_accuracy": 0.015056266977105161
+        },
+        "10": {
+          "accuracy": 0.027551416375630577,
+          "perplexity": 2215531.0640572608,
+          "hard_accuracy": 0.021342646488164533
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|2|random|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 2,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.9544819557625,
+      "prompt_length_max": 398,
+      "inference_time_per_member_s": 9.883756689995062,
+      "by_size": {
+        "1": {
+          "accuracy": 0.018160651920838183,
+          "perplexity": 37745376.34744267,
+          "hard_accuracy": 0.018160651920838183
+        },
+        "5": {
+          "accuracy": 0.030073729142413658,
+          "perplexity": 12264404.233650154,
+          "hard_accuracy": 0.022002328288707802
+        },
+        "10": {
+          "accuracy": 0.033372138145129994,
+          "perplexity": 9697900.279141104,
+          "hard_accuracy": 0.02910360884749709
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|2|random|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 2,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.9544819557625,
+      "prompt_length_max": 398,
+      "inference_time_per_member_s": 9.896000780002215,
+      "by_size": {
+        "1": {
+          "accuracy": 0.010322079937912301,
+          "perplexity": 26454814.62454624,
+          "hard_accuracy": 0.010322079937912301
+        },
+        "5": {
+          "accuracy": 0.0203337213814513,
+          "perplexity": 3409859.5231413646,
+          "hard_accuracy": 0.012029491656965464
+        },
+        "10": {
+          "accuracy": 0.0236709351959643,
+          "perplexity": 2196155.157214932,
+          "hard_accuracy": 0.01629802095459837
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|2|similar|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 2,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.720993403182,
+      "prompt_length_max": 466,
+      "inference_time_per_member_s": 10.478421799954958,
+      "by_size": {
+        "1": {
+          "accuracy": 0.02483507954986418,
+          "perplexity": 28287682.27292001,
+          "hard_accuracy": 0.02483507954986418
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|2|similar|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 2,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 2.0,
+      "prompt_length_mean": 245.720993403182,
+      "prompt_length_max": 466,
+      "inference_time_per_member_s": 10.388423450000118,
+      "by_size": {
+        "1": {
+          "accuracy": 0.01695770275514164,
+          "perplexity": 19501977.374441646,
+          "hard_accuracy": 0.01695770275514164
+        },
+        "5": {
+          "accuracy": 0.027939464493597205,
+          "perplexity": 3083173.7178355237,
+          "hard_accuracy": 0.019906868451688008
+        },
+        "10": {
+          "accuracy": 0.03220799379123011,
+          "perplexity": 2098249.043982871,
+          "hard_accuracy": 0.02677532013969732
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|4|fixed|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 4,
+      "strategy": "fixed",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.99965075669383,
+      "prompt_length_mean": 406.9649204501358,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 15.83255705999909,
+      "by_size": {
+        "1": {
+          "accuracy": 0.023787349631354288,
+          "perplexity": 32708590.388065286,
+          "hard_accuracy": 0.023787349631354288
+        },
+        "5": {
+          "accuracy": 0.03457508731082654,
+          "perplexity": 11527802.67514173,
+          "hard_accuracy": 0.028327512611563833
+        },
+        "10": {
+          "accuracy": 0.038804811796662786,
+          "perplexity": 9514951.286994478,
+          "hard_accuracy": 0.029879705083430345
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|4|fixed|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 4,
+      "strategy": "fixed",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.99965075669383,
+      "prompt_length_mean": 406.9649204501358,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 15.865946909994818,
+      "by_size": {
+        "1": {
+          "accuracy": 0.015056266977105161,
+          "perplexity": 22421989.28595245,
+          "hard_accuracy": 0.015056266977105161
+        },
+        "5": {
+          "accuracy": 0.028172293364377182,
+          "perplexity": 3006726.511369688,
+          "hard_accuracy": 0.018199456732634848
+        },
+        "10": {
+          "accuracy": 0.03298409002716337,
+          "perplexity": 1983633.0394451618,
+          "hard_accuracy": 0.02211874272409779
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|4|random|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 4,
+      "strategy": "random",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.996235933255724,
+      "prompt_length_mean": 411.2545595653861,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 17.25578791999724,
+      "by_size": {
+        "1": {
+          "accuracy": 0.020566550252231277,
+          "perplexity": 34644298.423024535,
+          "hard_accuracy": 0.020566550252231277
+        },
+        "5": {
+          "accuracy": 0.031276678308110206,
+          "perplexity": 10940952.576429084,
+          "hard_accuracy": 0.025029103608847497
+        },
+        "10": {
+          "accuracy": 0.033760186263096625,
+          "perplexity": 8592634.59219444,
+          "hard_accuracy": 0.029879705083430345
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|4|random|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 4,
+      "strategy": "random",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.996235933255724,
+      "prompt_length_mean": 411.2545595653861,
+      "prompt_length_max": 512,
+      "inference_time_per_member_s": 17.271758429997135,
+      "by_size": {
+        "1": {
+          "accuracy": 0.012805587892898719,
+          "perplexity": 26398326.255223684,
+          "hard_accuracy": 0.012805587892898719
+        },
+        "5": {
+          "accuracy": 0.02242918121847109,
+          "perplexity": 3607434.9156924095,
+          "hard_accuracy": 0.014435389988358556
+        },
+        "10": {
+          "accuracy": 0.027551416375630577,
+          "perplexity": 2399287.456000618,
+          "hard_accuracy": 0.01823826154443151
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|4|similar|0|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 4,
+      "strategy": "similar",
+      "mask_fraction": 0.0,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 1,
+      "n_test": 2577,
+      "shots_used_mean": 3.9848661233993017,
+      "prompt_length_mean": 409.2731858750485,
+      "prompt_length_max": 511,
+      "inference_time_per_member_s": 17.605056500062346,
+      "by_size": {
+        "1": {
+          "accuracy": 0.023282887077997673,
+          "perplexity": 27415875.238092594,
+          "hard_accuracy": 0.023282887077997673
+        }
+      }
+    },
+    {
+      "key": "roneneldan/TinyStories-33M|4|similar|0.125|512",
+      "model": "roneneldan/TinyStories-33M",
+      "shots": 4,
+      "strategy": "similar",
+      "mask_fraction": 0.125,
+      "max_length": 512,
+      "separator": "\n\n",
+      "n_members": 10,
+      "n_test": 2577,
+      "shots_used_mean": 3.9848661233993017,
+      "prompt_length_mean": 409.2731858750485,
+      "prompt_length_max": 511,
+      "inference_time_per_member_s": 17.34560128999874,
+      "by_size": {
+        "1": {
+          "accuracy": 0.016492045013581685,
+          "perplexity": 20287092.56882585,
+          "hard_accuracy": 0.016492045013581685
+        },
+        "5": {
+          "accuracy": 0.028599146294140475,
+          "perplexity": 3245902.6548133944,
+          "hard_accuracy": 0.019906868451688008
+        },
+        "10": {
+          "accuracy": 0.03181994567326348,
+          "perplexity": 2270470.7910235715,
+          "hard_accuracy": 0.022894838960031045
+        }
+      }
+    }
+  ]
+}
