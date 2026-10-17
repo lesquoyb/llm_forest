@@ -55,13 +55,25 @@ def make_dim_mask(masked_dims, hidden_size, device):
     return mask
 
 
-def random_masked_dims(hidden_size, mask_fraction, generator=None):
-    """Tire au hasard round(mask_fraction * hidden_size) dimensions à neutraliser."""
+def random_masked_dims(hidden_size, mask_fraction, generator=None, weights=None):
+    """
+    Tire round(mask_fraction * hidden_size) dimensions à neutraliser.
+
+    weights : poids de tirage par dimension (sans remise), ex. pour masquer
+    surtout les dimensions peu influentes ; un poids nul protège la dimension.
+    None = tirage uniforme.
+    """
 
     n_masked = round(mask_fraction * hidden_size)
-    perm = torch.randperm(hidden_size, generator=generator)
+    if n_masked == 0:
+        return ()
+    if weights is None:
+        perm = torch.randperm(hidden_size, generator=generator)
+        return tuple(sorted(perm[:n_masked].tolist()))
 
-    return tuple(sorted(perm[:n_masked].tolist()))
+    chosen = torch.multinomial(torch.as_tensor(weights, dtype=torch.float), n_masked,
+                               replacement=False, generator=generator)
+    return tuple(sorted(chosen.tolist()))
 
 
 def masked_hidden_states(model, input_ids, attention_mask, dim_mask):

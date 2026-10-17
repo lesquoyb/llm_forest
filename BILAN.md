@@ -14,6 +14,52 @@ Sur LAMBADA, une forêt de 20 TinyStories-28M fine-tunés et masqués à 12,5 % 
 - **Ce qui ne marche pas :** masquer pour raccourcir le fine-tuning, l'apprentissage en contexte (des exemples dans le prompt), et BoolQ.
 - **Limite principale :** une seule graine par expérience. Les écarts dus au masque restent proches du bruit (environ ±0,8 point).
 
+## Reprise en texte propre (octobre)
+
+Les résultats ci-dessous en format `cimec` sont tirés vers le bas par le format du texte. En texte propre (`lambada_openai`), le 28M fine-tuné seul atteint 36,2 %, et une forêt de 50 TinyStories-1M masqués à 6,25 % atteint 27,2 %.
+
+**Le format pèse lourd.** `cimec` est en minuscules et pré-tokenisé (`do n't`, guillemets remplacés par des accents graves). Sur les mêmes 5 153 passages, les modèles de base font 2,4 à 2,6 fois mieux en texte propre, et leur perplexité est divisée par 150 à 600. Une raison : sans majuscules, les noms propres se découpent en plus de tokens (45 % des mots cibles font plusieurs tokens, contre 22 %).
+
+| Modèle, sans fine-tuning | `cimec` | Texte propre |
+| --- | --- | --- |
+| TinyStories-1M | 1,7 % | 4,0 % |
+| TinyStories-28M | 5,7 % | 14,6 % |
+| TinyStories-33M | 4,6 % | 11,7 % |
+
+**Protocole.** `lambada_openai` ne contient que les 5 153 passages du test. On les coupe avec le même découpage qu'avant :
+
+- **moitié A** : 2 076 passages d'entraînement et 500 de sélection ;
+- **moitié B** : test final, avec les mêmes passages que la moitié B de `cimec`.
+
+Le dépôt contient aussi des traductions (de, es, fr, it) ; on utilise la configuration anglaise, vérifiée passage par passage.
+
+**Réglages refaits sur la sélection** (TinyStories-1M) :
+
+- **Epochs** : à 10 membres, l'accuracy plafonne vers 12 à 15 epochs, pour tous les masques. On garde 15 epochs, sans early stopping par membre. Avec early stopping, la forêt reste bloquée vers 17 %.
+- **Masque × taille** : plus le masque est grand, plus il faut de membres pour qu'il paie. Le masque de 6,25 % dépasse le bagging vers 20 membres, celui de 12,5 % vers 30 à 40. Le bagging plafonne dès 30 membres, alors que les forêts masquées montaient encore à 50.
+
+| Membres (sélection, 500 passages) | 1 | 5 | 10 | 20 | 30 | 50 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Sans masque (bagging) | 14,6 % | 22,1 % | 23,9 % | 24,6 % | 25,0 % | 24,8 % |
+| Masque 6,25 % | 13,4 % | 21,1 % | 23,3 % | 24,9 % | 25,5 % | 26,6 % |
+| Masque 12,5 % | 13,0 % | 19,8 % | 22,5 % | 23,9 % | 25,0 % | 26,2 % |
+| Masque 25 % | 11,1 % | 18,5 % | 21,4 % | 23,5 % | 24,2 % | 25,2 % |
+
+**Test final, moitié B** (configuration choisie sur la sélection) :
+
+| Modèle | Accuracy | Perplexité |
+| --- | --- | --- |
+| 1M fine-tuné seul | 15,8 % | 11 297 |
+| Forêt 1M ×50, sans masque | 26,9 % | 1 964 |
+| **Forêt 1M ×50, masque 6,25 %** | **27,2 %** | **1 711** |
+| Forêt 1M ×50, masque 12,5 % | 26,8 % | 1 714 |
+| Forêt 1M ×50, masque 25 % | 26,5 % | 1 986 |
+| 28M fine-tuné seul (pour comparaison) | 36,2 % | 632 |
+
+Sur le test, l'avantage du masque en accuracy fond (+0,2 point au lieu de +1,8 sur la sélection) et reste dans le bruit. En perplexité, il est net : −13 % pour les masques de 6,25 % et 12,5 %. Les forêts masquées sont mieux calibrées, sans trouver plus souvent le bon mot.
+
+Résultats : `lambada/outputs/openai/` (`forest_epochs_1M/`, `forest_grid_1M_v2/`, `single_models/`).
+
 ## Méthode
 
 **Fine-tuning avec masque.** Neutraliser une dimension, c'est mettre sa colonne à zéro dans les embeddings d'entrée et dans le dernier état caché, avant le calcul des scores. Le score ne dépend alors plus du tout de cette dimension. Les couches internes restent pleine largeur, et le calcul coûte le même temps.
@@ -133,7 +179,7 @@ Partir d'un embedding plus petit aide beaucoup. Un tokenizer à 8 000 mots au li
 - **BoolQ n'a pas été refait** avec les réglages appris sur LAMBADA.
 - **Les poids des forêts ne sont pas sauvegardés.** On peut les reproduire au bit près, mais il faut réentraîner.
 
-## Analyse de sensibilité de l'embedding (en cours)
+## Analyse de sensibilité de l'embedding : méthode
 
 L'objectif est de savoir quelles dimensions de l'embedding du TinyStories-1M comptent vraiment, pour choisir les masques des forêts, ou réduire l'embedding. L'analyse porte sur le modèle avant fine-tuning, en texte propre (`lambada_openai`), sur 512 passages fixes de la moitié A.
 
@@ -169,6 +215,121 @@ Carte des corrélations : `lambada/outputs/openai/embedding_correlations_1M.png`
 2. **Calculer les indices de Sobol dans cette même base**, où les coordonnées sont décorrélées, pour quantifier les interactions si Morris en révèle.
 3. **Refaire l'analyse sur les modèles fine-tunés**, plus tard : un membre entraîné avec son masque s'adapte, ce que l'analyse du modèle de base ne voit pas.
 4. **Effets de Shapley**, seulement si une réponse rigoureuse dans la base d'origine est nécessaire. C'est coûteux : plusieurs heures pour le 1M.
+
+## Analyse de sensibilité : résultats
+
+L'importance d'une dimension dépend fortement du nombre de dimensions déjà supprimées. Seule la dimension 18 compte dans tous les régimes. Tout porte sur TinyStories-1M avant fine-tuning, en texte propre, avec 512 passages fixes.
+
+**Correction de méthode.** Le premier Morris basculait chaque dimension une fois le long d'une trajectoire. En binaire, une telle trajectoire part de q dimensions gardées et finit à 1 − q : elle parcourt tout l'espace, et les deux régimes visés se confondaient. Il est refait avec le plan radial (Campolongo et al. 2011), où l'on bascule une dimension à la fois puis on revient au point de départ. Les états restent proches du point de départ.
+
+**Morris radial (50 points de départ par régime)**
+
+| Régime | Dimensions les plus influentes | Accord avec « une à la fois » |
+| --- | --- | --- |
+| Proche du modèle complet (~10 % supprimées) | 56, 10, 57, 45, 52, 46, 20, 49, 33, 18 | 0,80 |
+| Moitié supprimée | 18, 36, 16, 40, 27, 0, 26, 55, 56, 11 | 0,00 |
+
+- **Les deux classements n'ont presque rien en commun** (corrélation de rang de 0,16).
+- **Les dimensions 36, 16 et 0 servent de secours.** Elles comptent peu tant que le modèle est presque complet (rangs 40 à 50), et deviennent critiques quand la moitié des dimensions manque (rangs 2, 3 et 6).
+- **Aucune dimension n'est négligeable.** Près du modèle complet, la moins influente pèse encore 12 % de la plus influente, et la moitié de l'effet est portée par 18 dimensions.
+
+**Sobol sur les 16 dimensions retenues par le criblage** (les 48 autres restent gardées, N = 1 024, environ 18 000 évaluations par plan) :
+
+| Dimension | 18 | 57 | 10 | 20 | 33 | 46 | 49 | 40 | 55 | 47 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S1, effet propre (plan binaire) | 0,26 | 0,12 | 0,09 | 0,08 | 0,07 | 0,05 | 0,04 | 0,03 | 0,03 | 0,02 |
+| ST, avec interactions (plan binaire) | 0,29 | 0,17 | 0,12 | 0,10 | 0,10 | 0,09 | 0,06 | 0,05 | 0,03 | 0,06 |
+
+- **Les effets sont largement additifs.** Les effets propres expliquent 83 % de la variance de la perte, et les interactions environ 17 %.
+- **La dimension 18 explique à elle seule 26 % de la variance.**
+- **Le classement tient d'un plan à l'autre** : corrélation de rang de 0,91 entre suppression franche (plan binaire) et atténuation progressive (plan continu).
+- **Estimateurs vérifiés.** Le premier estimateur de S1 n'était pas centré et donnait des valeurs inutilisables (somme de 1,41). Il est corrigé, et complété par la différence des moyennes, spécifique aux entrées binaires. Les deux concordent, et les deux retrouvent les vrais indices sur une fonction test.
+
+Résultats : `lambada/outputs/openai/sensitivity_TinyStories-1M*/`.
+
+**Pour les forêts.** Les masques de 6,25 à 12,5 % se situent dans le régime proche du modèle complet : c'est ce classement qui compte pour eux. Expérience naturelle : tirer les masques parmi les dimensions les moins influentes de ce régime, et protéger la 18.
+
+**Masques guidés (1M, 50 membres, même graine que les masques aléatoires, donc comparaison appariée)**
+
+Deux stratégies : « low » tire les dimensions masquées parmi les 32 moins influentes ; « weighted » tire avec une probabilité inversement proportionnelle à mu* (Morris, régime q = 0,9). Low a été abandonné après 6,25 %.
+
+| Masque | Stratégie | 10 membres | 30 membres | 50 membres | Perplexité à 50 |
+| --- | --- | --- | --- | --- | --- |
+| 6,25 % | aléatoire | – | – | 27,16 % | 1 711 |
+| 6,25 % | weighted | – | – | 27,55 % | 1 664 |
+| 6,25 % | low | – | – | 26,81 % | 1 697 |
+| 12,5 % | aléatoire | 23,66 % | 26,24 % | 26,81 % | 1 714 |
+| 12,5 % | weighted | 24,14 % | 26,47 % | 27,20 % | 1 683 |
+
+- **Weighted fait un peu mieux qu'aléatoire, régulièrement** : environ +0,4 point à toutes les tailles, et une perplexité 2 à 4 % plus basse, sur le test comme sur la sélection.
+- **La deuxième graine ne confirme pas le gain en précision.** À 6,25 % et 50 membres, weighted fait 26,97 % contre 27,12 % pour aléatoire (graine 1), après 27,55 % contre 27,16 % (graine 0). Seule la perplexité reste un peu plus basse avec weighted pour les deux graines (−1 à −3 %). Conclusion : **le guidage par la sensibilité pré-fine-tuning n'apporte rien de mesurable**.
+- **Low ne marche pas** : se limiter aux 32 dimensions les moins influentes réduit la diversité des masques, ce qui coûte plus que la protection des dimensions importantes.
+- **Un membre seul est aussi bon quel que soit le guidage** (~13,3 %) : le fine-tuning compense le masque. Le gain éventuel de weighted vient de la forêt, pas des membres.
+
+**Masque de 6,25 % jusqu'à 100 membres (1M, graine 0)**
+
+| Membres | 10 | 20 | 40 | 60 | 80 | 100 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Précision (test B) | 24,3 % | 26,1 % | 27,2 % | 27,6 % | 27,9 % | 27,9 % |
+| Perplexité | 2 938 | 2 149 | 1 813 | 1 676 | 1 604 | 1 561 |
+
+- **Plateau vers 80 membres, autour de 27,9 %.** La perplexité, elle, continue de baisser doucement.
+- **Le plafond des forêts de 1M reste loin du 28M** : 100 membres de 1M (environ 375 M de paramètres) font 27,9 %, contre 36,2 % pour un seul 28M fine-tuné et 42,7 % pour une forêt de 20 × 28M. La forêt ne remplace pas la taille du modèle.
+
+**Deuxième graine (1M, masques et bootstraps retirés)**
+
+| 50 membres | Graine 0 | Graine 1 |
+| --- | --- | --- |
+| Bagging seul | 26,93 % (ppl 1 964) | 26,66 % (ppl 1 961) |
+| Masque 6,25 % aléatoire | 27,16 % (ppl 1 711) | 27,12 % (ppl 1 692) |
+| Masque 6,25 % weighted | 27,55 % (ppl 1 664) | 26,97 % (ppl 1 678) |
+
+- **Le masque de 6,25 % bat le bagging pour les deux graines** : +0,2 et +0,5 point, et surtout une perplexité 13 % plus basse les deux fois. Cet effet sur la perplexité est solide ; celui sur la précision est petit mais de même signe.
+- **La variation entre graines est d'environ 0,3 point à 50 membres**, du même ordre que les écarts entre stratégies de masque.
+
+**Forêts de 28M en texte propre (20 membres, 6 époques, test B)**
+
+| Membres | Sans masque | Masque 6,25 % | Masque 12,5 % | Perplexité (0 / 6,25 / 12,5 %) |
+| --- | --- | --- | --- | --- |
+| 1 | 32,7 % | 31,9 % | 30,8 % | 1 093 / 1 159 / 1 311 |
+| 2 | 36,8 % | 36,3 % | 35,8 % | 424 / 424 / 449 |
+| 5 | 40,4 % | 40,2 % | 40,1 % | 212 / 203 / 212 |
+| 10 | 41,9 % | 41,9 % | 41,9 % | 163 / 151 / 155 |
+| 15 | 42,4 % | 42,5 % | 42,9 % | 147 / 133 / 137 |
+| 20 | 42,7 % | 42,8 % | **43,3 %** | 138 / 124 / 128 |
+
+Référence : le 28M fine-tuné seul (10 époques, données complètes) fait 36,2 % pour une perplexité de 632.
+
+- **La forêt marche aussi sur le gros modèle** : +6,5 points sur le 28M fine-tuné seul, et une perplexité divisée par 4,5. Deux membres suffisent déjà à le rattraper.
+- **Le masque croise le bagging plus tôt** qu'avec le 1M, vers 10 membres au lieu de 20. Sa perplexité est 10 % plus basse à 20 membres, et il est meilleur sur la sélection (42,8 % contre 41,2 %). En précision sur le test, l'écart reste dans le bruit.
+- **Le masque de 12,5 % devient le meilleur à partir de 15 membres** : 43,3 % à 20 membres, et 44,2 % sur la sélection (contre 41,2 % sans masque). Plus le masque est grand, plus il perd sur un membre seul et plus il gagne sur une grande forêt, comme supposé.
+- **La courbe s'aplatit sans masque** (+0,8 point entre 10 et 20 membres), alors que le masque de 12,5 % monte encore (+1,4 point).
+
+**Jusqu'à 30 membres (28M, nouvelle série, même graine)**
+
+| Membres | Sans masque | Masque 12,5 % | Masque 25 % |
+| --- | --- | --- | --- |
+| 1 | 32,8 % | 31,0 % | 28,6 % |
+| 10 | 41,8 % | 42,0 % | 41,0 % |
+| 20 | 42,7 % | 43,3 % | 42,4 % |
+| 30 | 43,0 % (ppl 127) | **44,0 %** (ppl 119) | 43,0 % (ppl 136) |
+| 30, sélection | 41,0 % | 43,6 % | 43,4 % |
+
+- **Le masque de 12,5 % est le bon réglage pour le 28M** : +1 point sur le test à 30 membres, +2,6 points sur la sélection, et une perplexité plus basse. L'écart grandit avec la taille de la forêt.
+- **Le masque de 25 % est trop fort** : il perd trop sur chaque membre (28,6 % seul) pour que la diversité compense à 30 membres, sauf sur la sélection.
+- **Sans masque, la forêt plafonne** : +0,3 point entre 20 et 30 membres. Le masque de 12,5 % gagne encore +0,7 point.
+- **Deuxième graine (forêt et bootstraps retirés) : l'écart tient.** À 30 membres, 44,35 % avec le masque de 12,5 % contre 42,80 % sans (perplexité 116 contre 127), et 42,8 % contre 41,0 % sur la sélection. Sur les deux graines, le masque de 12,5 % apporte +1,0 et +1,6 point : bien au-delà de la variation entre graines (~0,3 point).
+- **18,75 % (graine 0, 30 membres)** : 43,7 % (perplexité 122), entre 12,5 % (44,0 %) et 25 % (43,0 %). **L'optimum à 30 membres est autour de 12,5 %** ; il glissera sans doute vers des masques plus grands avec des forêts plus grandes, mais 40 membres de 28M dépassent la mémoire vive disponible (membres gardés sur CPU).
+- **Coût** : environ 54 s d'entraînement par membre, soit 18 min pour 20 membres.
+
+Résultats : `lambada/outputs/openai/forest_grid_28M/`.
+
+**Prochaines étapes**
+
+1. ~~Pousser le masque de 6,25 % jusqu'à 100 membres~~ : fait, plateau vers 80 membres.
+2. ~~Masques guidés par la sensibilité~~ : fait, voir ci-dessus.
+3. ~~Forêts de 28M en texte propre~~ : fait, voir ci-dessus.
+4. ~~Deuxième graine~~ : fait, voir ci-dessus.
 
 ## Ce que dit la littérature
 

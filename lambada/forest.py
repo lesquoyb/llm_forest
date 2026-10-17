@@ -33,6 +33,7 @@ class RandomLLMForest:
         bootstrap=True,
         early_stopping=True,
         offload=False,
+        mask_weights=None,
         max_oob_samples=1000,
         max_length=256,
         seed=0,
@@ -54,6 +55,8 @@ class RandomLLMForest:
         - offload : garde les membres déjà entraînés en mémoire vive (CPU)
           pendant l'entraînement des suivants, pour les gros modèles.
           Appeler `to(device)` avant d'évaluer.
+        - mask_weights : poids de tirage des dimensions masquées (voir
+          random_masked_dims) ; None = tirage uniforme.
         - mask_fraction=0 : aucun masque.
         - finetune_kwargs : transmis à `finetune` (epochs, lr, batch_size...).
         """
@@ -65,6 +68,7 @@ class RandomLLMForest:
         self.bootstrap = bootstrap
         self.early_stopping = early_stopping
         self.offload = offload
+        self.mask_weights = mask_weights
         self.max_oob_samples = max_oob_samples
         self.max_length = max_length
         self.seed = seed
@@ -93,7 +97,9 @@ class RandomLLMForest:
         self.members = []
 
         for i in range(self.n_estimators):
-            masked_dims = random_masked_dims(hidden_size, self.mask_fraction, generator)
+            masked_dims = random_masked_dims(
+                hidden_size, self.mask_fraction, generator, self.mask_weights
+            )
 
             if self.bootstrap:
                 indices = [rng.randrange(len(data)) for _ in range(len(data))]

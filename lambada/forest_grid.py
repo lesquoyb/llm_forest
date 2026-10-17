@@ -57,6 +57,11 @@ def parse_args():
     parser.add_argument("--max-eval-samples", type=int, default=None)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--forest-seed", type=int, default=None,
+        help="graine des forêts (bootstraps, masques, ordre des données) ; par défaut "
+             "--seed. Le découpage des données dépend seulement de --seed.",
+    )
+    parser.add_argument(
         "--format", choices=["cimec", "openai"], default="cimec",
         help="openai = texte propre, entraînement sur la moitié a du test (voir data.py)",
     )
@@ -66,6 +71,28 @@ def parse_args():
         help="tous les membres font exactement --epochs epochs (meilleur pour la forêt)",
     )
     parser.add_argument("--eval-batch-size", type=int, default=16)
+    parser.add_argument(
+        "--mask-strategy", choices=["random", "low", "weighted"], default="random",
+        help="random = uniforme ; low = seulement parmi les dimensions les moins "
+             "influentes (--low-pool) ; weighted = probabilité inversement "
+             "proportionnelle à l'importance (mu* de Morris, --sensitivity)",
+    )
+    parser.add_argument(
+        "--sensitivity",
+        default=str(Path(__file__).parent / "outputs" / "openai"
+                    / "sensitivity_TinyStories-1M_radial" / "results.json"),
+        help="results.json de sensitivity.py (Morris) donnant l'importance des dimensions",
+    )
+    parser.add_argument("--sensitivity-q", default="0.9", help="régime Morris utilisé")
+    parser.add_argument("--low-pool", type=int, default=32,
+                        help="strategy low : nombre de dimensions les moins influentes masquables")
+    parser.add_argument("--dev-size", type=int, default=300,
+                        help="format openai : passages de la moitié a mis de côté pour la sélection")
+    parser.add_argument(
+        "--eval-selection", action="store_true",
+        help="évalue aussi chaque forêt sur les passages de sélection (colonnes sel_*), "
+             "pour choisir masque et taille sans toucher au test",
+    )
     parser.add_argument(
         "--offload",
         action="store_true",
@@ -129,6 +156,7 @@ def mean_std(values):
 def main():
     args = parse_args()
     torch.manual_seed(args.seed)
+    forest_seed = args.seed if args.forest_seed is None else args.forest_seed
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     output_dir = Path(args.output_dir)
@@ -150,6 +178,7 @@ def main():
         seed=args.seed,
         test_half=args.test_half,
         fmt=args.format,
+        openai_dev_size=args.dev_size,
     )
     train = prepare_corpus(train_raw, tokenizer, args.max_length)
     dev = prepare_corpus(dev_raw, tokenizer, args.max_length)
@@ -186,7 +215,7 @@ def main():
         print("\n=== Référence : fine-tuné seul (corpus complet, sans masque) ===", flush=True)
 
         reference = finetune(
-            base_model, tokenizer, train, dev, seed=args.seed, verbose=False, **finetune_kwargs
+            base_model, tokenizer, train, dev, seed=forest_seed, verbose=False, **finetune_kwargs
         )
         evaluate([reference], test[:64])  # préchauffage GPU
         ref_scores, ref_inference = timed(lambda: evaluate([reference], test), device)
@@ -212,6 +241,18 @@ def main():
     # Forêts
     # --------------------------------------------------------
 
+    mask_weights = None
+    if args.mask_strategy != "random":
+        with open(args.sensitivity, encoding="utf-8") as f:
+            mu_star = torch.tensor(json.load(f)["morris"][args.sensitivity_q]["loss"]["mu_star"])
+        if args.mask_strategy == "low":
+            mask_weights = torch.zeros_like(mu_star)
+            mask_weights[mu_star.argsort()[:args.low_pool]] = 1.0
+        else:
+            mask_weights = 1.0 / mu_star
+        print(f"Masques {args.mask_strategy} : dimensions masquables "
+              f"{(mask_weights > 0).nonzero().flatten().tolist()}", flush=True)
+
     subsets = draw_subsets(args.max_estimators, args.subsets_per_size, random.Random(args.seed))
     flat_subsets = [idx for k in subsets for idx in subsets[k]]
 
@@ -230,9 +271,10 @@ def main():
             tokenizer,
             n_estimators=args.max_estimators,
             mask_fraction=fraction,
+            mask_weights=mask_weights,
             early_stopping=not args.no_early_stopping,
             offload=args.offload,
-            seed=args.seed,
+            seed=forest_seed,
             verbose=True,
             **finetune_kwargs,
         ).fit(train)
@@ -248,6 +290,12 @@ def main():
             forest.members, test, batch_size=args.eval_batch_size, subsets=flat_subsets
         )
         by_subset = iter(scores["subsets"])
+        sel_by_subset = None
+        if args.eval_selection:
+            sel_scores = evaluate(
+                forest.members, dev, batch_size=args.eval_batch_size, subsets=flat_subsets
+            )
+            sel_by_subset = iter(sel_scores["subsets"])
         train_times = [m.train_time_s for m in forest.members]
 
         members_info[fraction] = [
@@ -276,6 +324,14 @@ def main():
                 "inference_time_s": k * inference_per_member,
             })
 
+            if sel_by_subset is not None:
+                sel = [next(sel_by_subset) for _ in idx_list]
+                grid[-1]["sel_accuracy"] = mean_std([r["soft"]["accuracy"] for r in sel])[0]
+                grid[-1]["sel_accuracy_std"] = mean_std([r["soft"]["accuracy"] for r in sel])[1]
+                grid[-1]["sel_perplexity"] = math.exp(
+                    mean_std([math.log(r["soft"]["perplexity"]) for r in sel])[0]
+                )
+
         best = max((g for g in grid if g["fraction"] == fraction), key=lambda g: g["accuracy"])
         solo = next(g for g in grid if g["fraction"] == fraction and g["size"] == 1)
         print(
@@ -294,7 +350,7 @@ def main():
         # Libère la forêt avant d'entraîner la suivante. Sinon les deux
         # forêts cohabitent sur le GPU pendant l'entraînement : à 100 membres,
         # la mémoire déborde sur la RAM et tout devient 10x plus lent.
-        del forest, scores, by_subset
+        del forest, scores, by_subset, sel_by_subset
         if device.type == "cuda":
             torch.cuda.empty_cache()
 

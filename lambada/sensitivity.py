@@ -2,10 +2,17 @@
 LAMBADA : analyse de sensibilité des dimensions de l'embedding (Morris, Sobol).
 
 Morris (--method morris, par défaut), version binaire centrée sur la
-suppression : chaque trajectoire part d'un état où chaque dimension est
-gardée avec la probabilité q (--keep-probs), puis bascule chaque dimension une
-fois, dans un ordre aléatoire. L'effet élémentaire EE_i = hausse de la perte
-quand on supprime la dimension i, dans ce contexte. Par dimension :
+suppression. Chaque point de départ garde chaque dimension avec la
+probabilité q (--keep-probs). L'effet élémentaire EE_i = hausse de la perte
+quand on supprime la dimension i, dans ce contexte. Deux plans (--morris-design) :
+- "radial" (par défaut, Campolongo et al. 2011) : depuis chaque point de
+  départ, on bascule une seule dimension à la fois et on revient au point de
+  départ. Les états restent proches du point de départ : q fixe vraiment le
+  régime (q = 0,9 : environ 10 % de dimensions supprimées) ;
+- "trajectory" (Morris 1991) : on bascule les dimensions l'une après l'autre
+  sans revenir. En binaire, la trajectoire finit avec la proportion inverse
+  de dimensions gardées (de q à 1 - q) : criblage global de tout l'espace,
+  quel que soit q. Par dimension :
 mu* = moyenne de |EE_i| (importance), mu = moyenne de EE_i (signe),
 sigma = écart-type de EE_i (interactions : l'effet dépend des autres
 dimensions supprimées). Comparer plusieurs q montre si le classement tient
@@ -69,8 +76,19 @@ def parse_args():
     parser.add_argument("--method", choices=["morris", "sobol"], default="morris")
     parser.add_argument("--keep-probs", type=float, nargs="+", default=[0.9, 0.5],
                         help="Morris : probabilité de garder chaque dimension au départ des trajectoires")
-    parser.add_argument("--trajectories", type=int, default=50, help="Morris : nombre de trajectoires r")
+    parser.add_argument("--trajectories", type=int, default=50,
+                        help="Morris : nombre de points de départ (trajectoires) r")
+    parser.add_argument("--morris-design", choices=["radial", "trajectory"], default="radial")
     parser.add_argument("--designs", nargs="+", choices=["binary", "uniform"], default=["binary", "uniform"])
+    parser.add_argument(
+        "--sobol-dims", default="all",
+        help="Sobol : 'all', 'topK' (les K plus influentes selon Morris, lu dans results.json) "
+             "ou une liste '3,17,42'. Les autres dimensions restent gardées (facteur 1).",
+    )
+    parser.add_argument("--keep-prob", type=float, default=0.5,
+                        help="Sobol, plan binaire : probabilité de garder chaque dimension")
+    parser.add_argument("--morris-q", default=None,
+                        help="régime Morris (q) utilisé pour 'topK' ; par défaut le premier")
     parser.add_argument("--n", type=int, default=1024, help="taille de base N de Saltelli")
     parser.add_argument("--eval-samples", type=int, default=512)
     # Masques x passages = séquences traitées d'un coup : au-delà de quelques
@@ -115,12 +133,18 @@ class MaskEvaluator:
 
         for start in range(0, len(data), passage_batch):
             batch = collate(data[start:start + passage_batch], tokenizer.pad_token_id)
-            length = int(batch["attention_mask"].sum(1).max())
-            labels = batch["labels"][:, :length].to(device)
+            # Paquet complété jusqu'au multiple de 32 supérieur : peu de formes de
+            # tenseurs différentes. Sinon PyTorch garde un bloc de mémoire en
+            # réserve par forme rencontrée, et la réserve dépasse la mémoire du GPU.
+            length = -(-batch["input_ids"].shape[1] // 32) * 32
+            pad = length - batch["input_ids"].shape[1]
+            input_ids = torch.nn.functional.pad(batch["input_ids"], (0, pad), value=tokenizer.pad_token_id)
+            attention_mask = torch.nn.functional.pad(batch["attention_mask"], (0, pad), value=0)
+            labels = torch.nn.functional.pad(batch["labels"], (0, pad), value=-100).to(device)
             is_target = labels != -100
             self.chunks.append({
-                "input_ids": batch["input_ids"][:, :length].to(device),
-                "attention_mask": batch["attention_mask"][:, :length].to(device),
+                "input_ids": input_ids.to(device),
+                "attention_mask": attention_mask.to(device),
                 "is_target": is_target,
                 "targets": labels[is_target],
                 "word_index": is_target.nonzero()[:, 0],
@@ -158,10 +182,12 @@ class MaskEvaluator:
 
     def many(self, masks, batch, progress=None):
         losses, accs = [], []
-        for start in range(0, len(masks), batch):
+        for n, start in enumerate(range(0, len(masks), batch)):
             loss, acc = self(masks[start:start + batch])
             losses.append(loss)
             accs.append(acc)
+            if n % 50 == 49 and self.device.type == "cuda":
+                torch.cuda.empty_cache()
             if progress:
                 progress(start + batch)
         return torch.cat(losses), torch.cat(accs)
@@ -171,19 +197,38 @@ class MaskEvaluator:
 # Sobol
 # ============================================================
 
-def sample(design, n, d, generator):
+def sample(design, n, d, generator, keep_prob=0.5):
     if design == "binary":
-        return (torch.rand(n, d, generator=generator) < 0.5).float()
+        return (torch.rand(n, d, generator=generator) < keep_prob).float()
     return torch.rand(n, d, generator=generator)
 
 
 def sobol_indices(f_a, f_b, f_ab):
     """f_a, f_b : [N] ; f_ab : [d, N]. Retourne (S1, ST) de taille d."""
 
-    var = torch.cat([f_a, f_b]).var()
-    s1 = (f_b[None] * (f_ab - f_a[None])).mean(1) / var  # Saltelli 2010
+    both = torch.cat([f_a, f_b])
+    var = both.var()
+    # Saltelli 2010, sorties centrées : sans centrage, la moyenne de la sortie
+    # (une perte de ~11) gonfle énormément la variance de l'estimateur.
+    f_b_c = f_b - both.mean()
+    s1 = (f_b_c[None] * (f_ab - f_a[None])).mean(1) / var
     st = 0.5 * ((f_a[None] - f_ab) ** 2).mean(1) / var  # Jansen
     return s1, st
+
+
+def binary_first_order(masks, y, active):
+    """
+    S1 pour des entrées binaires indépendantes, par différence des moyennes :
+    S1_i = p(1-p) (E[Y | x_i = 1] - E[Y | x_i = 0])^2 / Var(Y).
+    Toutes les lignes du plan de Saltelli (A, B et les AB_i) sont des tirages
+    de la loi d'entrée, donc toutes servent : estimateur bien plus précis.
+    """
+
+    x = masks[:, active]
+    p = x.mean(0)
+    mean_kept = (x * y[:, None]).sum(0) / x.sum(0)
+    mean_removed = ((1 - x) * y[:, None]).sum(0) / (1 - x).sum(0)
+    return p * (1 - p) * (mean_kept - mean_removed) ** 2 / y.var()
 
 
 def bootstrap(f_a, f_b, f_ab, n_boot, generator):
@@ -199,15 +244,21 @@ def bootstrap(f_a, f_b, f_ab, n_boot, generator):
     return torch.quantile(s1s, q, dim=0), torch.quantile(sts, q, dim=0)
 
 
-def run_design(design, evaluator, d, args):
+def run_design(design, evaluator, d_full, args, active=None):
+    """Sobol sur les dimensions `active` (toutes par défaut) ; les autres restent à 1."""
+
+    active = list(range(d_full)) if active is None else list(active)
+    d = len(active)
     generator = torch.Generator().manual_seed(args.seed)
-    a = sample(design, args.n, d, generator)
-    b = sample(design, args.n, d, generator)
+    a = sample(design, args.n, d, generator, args.keep_prob)
+    b = sample(design, args.n, d, generator, args.keep_prob)
     ab = a[None].repeat(d, 1, 1)  # [d, N, d]
     for i in range(d):
         ab[i, :, i] = b[:, i]
 
-    masks = torch.cat([a, b, ab.reshape(d * args.n, d)])
+    small = torch.cat([a, b, ab.reshape(d * args.n, d)])
+    masks = torch.ones(len(small), d_full)
+    masks[:, active] = small
     total = len(masks)
     start = time.perf_counter()
 
@@ -220,14 +271,27 @@ def run_design(design, evaluator, d, args):
     loss, acc = evaluator.many(masks, args.mask_batch, progress)
     elapsed = time.perf_counter() - start
 
-    results = {"design": design, "n": args.n, "evaluations": total, "time_s": elapsed}
+    results = {"design": design, "n": args.n, "evaluations": total, "time_s": elapsed,
+               "active_dims": active, "keep_prob": args.keep_prob if design == "binary" else None}
     boot_gen = torch.Generator().manual_seed(args.seed + 1)
+
+    # Sorties brutes gardées : les indices peuvent être recalculés sans relancer.
+    torch.save({"masks": masks, "loss": loss, "accuracy": acc, "active": active},
+               Path(args.output_dir) / f"sobol_{design}_raw.pt")
 
     for name, y in (("loss", loss), ("accuracy", acc)):
         f_a, f_b = y[:args.n], y[args.n:2 * args.n]
         f_ab = y[2 * args.n:].view(d, args.n)
         s1, st = sobol_indices(f_a, f_b, f_ab)
         (s1_lo, s1_hi), (st_lo, st_hi) = bootstrap(f_a, f_b, f_ab, args.bootstrap, boot_gen)
+        if design == "binary":
+            s1_dm = binary_first_order(masks, y, active)
+            boots = torch.stack([
+                binary_first_order(masks[idx], y[idx], active)
+                for idx in (torch.randint(len(y), (len(y),), generator=boot_gen)
+                            for _ in range(args.bootstrap))
+            ])
+            dm_lo, dm_hi = torch.quantile(boots, torch.tensor([0.025, 0.975]), dim=0)
         results[name] = {
             "mean": torch.cat([f_a, f_b]).mean().item(),
             "std": torch.cat([f_a, f_b]).std().item(),
@@ -235,6 +299,13 @@ def run_design(design, evaluator, d, args):
             "ST": st.tolist(), "ST_low": st_lo.tolist(), "ST_high": st_hi.tolist(),
             "sum_S1": s1.sum().item(), "sum_ST": st.sum().item(),
         }
+        if design == "binary":
+            results[name].update({
+                "S1_diff_means": s1_dm.tolist(),
+                "S1_diff_means_low": dm_lo.tolist(),
+                "S1_diff_means_high": dm_hi.tolist(),
+                "sum_S1_diff_means": s1_dm.sum().item(),
+            })
 
     return results
 
@@ -262,6 +333,29 @@ def morris_trajectories(d, r, keep_prob, generator):
     return points, orders
 
 
+def morris_radial(d, r, keep_prob, generator):
+    """r points de départ, chacun suivi des d états où une seule dimension est basculée."""
+
+    points = torch.empty(r, d + 1, d)
+    orders = torch.arange(d).repeat(r, 1)
+    for t in range(r):
+        x = (torch.rand(d, generator=generator) < keep_prob).float()
+        points[t, 0] = x
+        flipped = x.repeat(d, 1)
+        flipped[torch.arange(d), torch.arange(d)] = 1 - x
+        points[t, 1:] = flipped
+    return points, orders
+
+
+def morris_radial_effects(f, points):
+    """Effets de la suppression [r, d] pour le plan radial : comparaison au point de départ."""
+
+    base = points[:, 0]  # [r, d]
+    delta = f[:, 1:] - f[:, :1]  # [r, d] : état basculé - point de départ
+    # Dimension gardée au départ -> le basculement la supprime : l'effet est delta.
+    return torch.where(base == 1, delta, -delta)
+
+
 def morris_effects(f, points, orders):
     """Effets élémentaires de la suppression [r, d] à partir des sorties f [r, d+1]."""
 
@@ -277,7 +371,10 @@ def morris_effects(f, points, orders):
 
 def run_morris(keep_prob, evaluator, d, args):
     generator = torch.Generator().manual_seed(args.seed)
-    points, orders = morris_trajectories(d, args.trajectories, keep_prob, generator)
+    if args.morris_design == "radial":
+        points, orders = morris_radial(d, args.trajectories, keep_prob, generator)
+    else:
+        points, orders = morris_trajectories(d, args.trajectories, keep_prob, generator)
     masks = points.reshape(-1, d)
     total = len(masks)
     start = time.perf_counter()
@@ -289,12 +386,15 @@ def run_morris(keep_prob, evaluator, d, args):
                   f"reste ~{elapsed / done * (total - done) / 60:.0f} min", flush=True)
 
     loss, acc = evaluator.many(masks, args.mask_batch, progress)
-    results = {"keep_prob": keep_prob, "trajectories": args.trajectories, "evaluations": total,
+    results = {"keep_prob": keep_prob, "design": args.morris_design,
+               "trajectories": args.trajectories, "evaluations": total,
                "time_s": time.perf_counter() - start}
     boot_gen = torch.Generator().manual_seed(args.seed + 1)
 
     for name, y in (("loss", loss), ("accuracy", acc)):
-        effects = morris_effects(y.view(args.trajectories, d + 1), points, orders)
+        f = y.view(args.trajectories, d + 1)
+        effects = (morris_radial_effects(f, points) if args.morris_design == "radial"
+                   else morris_effects(f, points, orders))
         mu_star = effects.abs().mean(0)
         boots = torch.stack([
             effects[torch.randint(args.trajectories, (args.trajectories,), generator=boot_gen)].abs().mean(0)
@@ -311,6 +411,19 @@ def run_morris(keep_prob, evaluator, d, args):
         }
 
     return results
+
+
+def resolve_dims(spec, output_dir, d, morris_q=None):
+    if spec == "all":
+        return list(range(d))
+    if spec.startswith("top"):
+        k = int(spec[3:])
+        with open(Path(output_dir) / "results.json", encoding="utf-8") as f:
+            morris = json.load(f)["morris"]
+        key = morris_q if morris_q is not None else next(iter(morris))
+        mu_star = morris[key]["loss"]["mu_star"]
+        return sorted(sorted(range(d), key=lambda i: -mu_star[i])[:k])
+    return sorted(int(x) for x in spec.split(","))
 
 
 def spearman(a, b):
@@ -390,11 +503,20 @@ def main():
         print(f"\nRésultats et graphique enregistrés dans {output_dir}/")
         return
 
+    active = resolve_dims(args.sobol_dims, output_dir, d, args.morris_q)
+    if args.method == "sobol":
+        # Garde les résultats Morris déjà présents dans le même dossier.
+        previous = output_dir / "results.json"
+        if previous.exists():
+            with open(previous, encoding="utf-8") as f:
+                results["morris"] = json.load(f).get("morris", {})
+    print(f"Sobol sur {len(active)} dimensions : {active}", flush=True)
+
     for design in args.designs:
-        r = run_design(design, evaluator, d, args)
+        r = run_design(design, evaluator, d, args, active)
         results["designs"][design] = r
         loss = r["loss"]
-        top = sorted(range(d), key=lambda i: -loss["ST"][i])[:8]
+        top = [active[j] for j in sorted(range(len(active)), key=lambda j: -loss["ST"][j])[:8]]
         print(
             f"{design} : perte moyenne {loss['mean']:.3f} (écart-type {loss['std']:.3f}) | "
             f"somme S1 {loss['sum_S1']:.2f}, somme ST {loss['sum_ST']:.2f} | "
@@ -463,7 +585,9 @@ def plot_morris(results, path):
 
 def plot(results, path):
     designs = list(results["designs"])
-    d = results["dimensions"]
+    # Positions j = 0..k-1 sur les dimensions étudiées (toutes, ou un sous-ensemble).
+    active = results["designs"][designs[0]].get("active_dims") or list(range(results["dimensions"]))
+    d = len(active)
     fig, axes = plt.subplots(
         len(designs) + 1, 1, figsize=(15, 3.6 * (len(designs) + 1)), facecolor=SURFACE
     )
@@ -491,7 +615,7 @@ def plot(results, path):
         ax.legend(frameon=False, fontsize=9)
 
     oat = results["one_at_a_time"]["loss_increase"]
-    axes[-1].bar(range(d), [oat[i] for i in order], color="#9a9890")
+    axes[-1].bar(range(d), [oat[active[i]] for i in order], color="#9a9890")
     axes[-1].set_title(
         "Une dimension masquée à la fois : hausse de la perte autour du modèle complet",
         color=TEXT, fontsize=11, loc="left",
@@ -500,7 +624,7 @@ def plot(results, path):
     for ax in axes:
         ax.set_facecolor(SURFACE)
         ax.set_xticks(range(d))
-        ax.set_xticklabels([str(i) for i in order], fontsize=6, rotation=90)
+        ax.set_xticklabels([str(active[i]) for i in order], fontsize=6 if d > 20 else 9, rotation=90)
         ax.set_xlim(-1, d)
         ax.tick_params(colors=TEXT_SECONDARY, labelsize=8)
         ax.grid(True, axis="y", color=GRID, linewidth=0.8)
