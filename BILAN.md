@@ -331,6 +331,48 @@ Résultats : `lambada/outputs/openai/forest_grid_28M/`.
 3. ~~Forêts de 28M en texte propre~~ : fait, voir ci-dessus.
 4. ~~Deuxième graine~~ : fait, voir ci-dessus.
 
+## Ensembles de masques à l'inférence (un seul modèle)
+
+Question : le gain du masque dans la forêt vient-il seulement de la diversité des votes ? Test : UN modèle, X masques aléatoires appliqués à l'inférence (entrée + notation), probabilités moyennées. Un seul jeu de poids en mémoire, un seul entraînement (ou aucun). Script : `lambada/mask_ensemble.py`. Trois variantes : modèle de base ; fine-tuné une fois sans masque ; fine-tuné une fois avec un nouveau masque aléatoire de 12,5 % à chaque pas (« dropout de dimensions »).
+
+**28M (test B, 30 masques)**
+
+| Variante | Seul, sans masque | Meilleur ensemble de masques | Entraînement |
+| --- | --- | --- | --- |
+| Base (pas de fine-tuning) | 15,1 % (ppl 10 039) | 16,3 % (12,5 %, 20 masques ; ppl 1 960) | 0 |
+| Fine-tuné une fois | 35,7 % (ppl 696) | 38,7 % (18,75–25 % ; ppl 267) | 52 s |
+| Fine-tuné avec dropout de dimensions | 37,3 % (ppl 721) | **40,75 %** (18,75 % ; ppl 213) | 54 s |
+| *Forêt 30 × 28M, bagging sans masque* | | *43,0 % (ppl 127)* | *27 min* |
+| *Forêt 30 × 28M, masque 12,5 %* | | *44,0 % (ppl 119)* | *27 min* |
+
+**1M (15 époques, 30 masques)** : fine-tuné une fois 18,1 % → 21,5 % avec 30 masques de 6,25 % ; avec dropout de dimensions 17,7 % → 20,3 %. Le modèle de base 1M s'effondre dès qu'on le masque (3,8 % → moins de 1 %). Forêt 1M de 30 membres : environ 26,8 %.
+
+- **Les masques à l'inférence apportent un vrai gain sans aucun entraînement supplémentaire** : +3 points sur le 28M fine-tuné, +3,4 sur le 1M, perplexité divisée par 2,5.
+- **Entraîner avec un masque différent à chaque pas aide deux fois** : le modèle seul gagne déjà +1,6 point (régularisation), et il supporte des masques plus forts à l'inférence. Meilleur réglage : 40,75 %, pour le coût d'un seul fine-tuning.
+- **Mais cela ne remplace pas la forêt.** La forêt sans masque (43,0 %) bat le meilleur ensemble de masques (40,75 %), avec une perplexité bien plus basse (127 contre 213). La diversité qui vient d'entraînements différents (bootstrap, graines) vaut plus que celle des masques d'inférence. L'hypothèse « le gain n'est qu'un vote aléatoire » est donc vraie pour une partie seulement : environ 5 points sur 8 de la forêt s'obtiennent avec un seul modèle.
+- **Sans fine-tuning, presque rien** : +1,2 point sur le 28M, et le 1M s'effondre. Le modèle doit avoir vu des masques ou au moins être adapté à la tâche.
+
+**Quel filtre ?** (`lambada/filter_analysis.py`, 28M fine-tuné une fois, masque de 12,5 %, test B)
+
+| Traitement du modèle seul | Précision | Perplexité |
+| --- | --- | --- |
+| Rien | 35,7 % | 696 |
+| Meilleure température (T = 1,4, choisie sur la sélection) | 35,7 % | 445 |
+| Sortie multipliée par p = 0,875 (= température 1,14) | 35,7 % | 507 |
+| 30 masques en sortie seule | 35,7 % | 503 |
+| Entrée multipliée par p | 34,8 % | 745 |
+| 30 masques en entrée seule | 38,0 % | 286 |
+| 30 masques entrée + sortie | 38,6 % | 258 |
+
+- **Côté sortie, le masque n'est qu'une température.** 30 masques en sortie donnent la même chose que la multiplication par p, c'est-à-dire une température 1/p : même précision, même perplexité (503 contre 507). Le terme de variance est négligeable. Une température bien réglée fait même mieux (445).
+- **Côté entrée, ce n'est pas un filtre, c'est un vrai ensemble.** Remplacer les masques par leur espérance dégrade le modèle (34,8 %), alors que 30 masques tirés au hasard donnent +2,3 points et une perplexité de 286, bien meilleure qu'avec n'importe quelle température. Le masque traverse le réseau, non linéaire : chaque masque donne un sous-réseau différent et c'est leur désaccord qui sert, comme le MC dropout.
+- **Même schéma sur le 1M et sur la variante dropout** : précision gagnée uniquement par les masques d'entrée tirés au hasard ; environ 45 % du gain de log-perplexité s'obtiennent par une simple température.
+- **Le 1M de base ne supporte pas les masques d'entrée** (3,8 % → 0,8 %), alors que le 28M de base les tolère (15,1 % → 15,6 %).
+
+Conséquence pratique : le masque de sortie est inutile (une température fait mieux, en une passe). Seul le masque d'entrée apporte de la diversité.
+
+Piste suivante : combiner, c'est-à-dire quelques membres entraînés avec dropout de dimensions, chacun vu à travers plusieurs masques (par exemple 5 membres × 6 masques).
+
 ## Ce que dit la littérature
 
 Je n'ai pas trouvé d'analyse de sensibilité formelle (Morris ou Sobol) appliquée aux dimensions de l'embedding d'un modèle de langage. La recherche est rapide et non exhaustive. Les travaux voisins pointent trois choses : quelques dimensions dominent souvent, leur variance ne dit pas leur importance, et les axes ne sont pas arbitraires quand le modèle est entraîné avec Adam.

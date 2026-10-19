@@ -80,20 +80,26 @@ def masked_hidden_states(model, input_ids, attention_mask, dim_mask):
     """
     Embedding explicite -> transformer -> dernier état caché, avec le masque
     appliqué avant et après.
+
+    dim_mask : vecteur [hidden_size] (le même en entrée et en sortie), ou
+    couple (masque d'entrée, masque de sortie) dont chacun peut valoir None.
+    Les valeurs peuvent être fractionnaires (mise à l'échelle des dimensions).
     """
+
+    in_mask, out_mask = dim_mask if isinstance(dim_mask, tuple) else (dim_mask, dim_mask)
 
     inputs_embeds = model.get_input_embeddings()(input_ids)
 
-    if dim_mask is not None:
-        inputs_embeds = inputs_embeds * dim_mask
+    if in_mask is not None:
+        inputs_embeds = inputs_embeds * in_mask
 
     hidden = model.base_model(
         inputs_embeds=inputs_embeds,
         attention_mask=attention_mask,
     ).last_hidden_state
 
-    if dim_mask is not None:
-        hidden = hidden * dim_mask
+    if out_mask is not None:
+        hidden = hidden * out_mask
 
     return hidden
 
@@ -381,6 +387,7 @@ def finetune(
     val_corpus=None,
     *,
     masked_dims=(),
+    mask_dropout=0.0,
     epochs=5,
     lr=5e-5,
     batch_size=16,
@@ -397,6 +404,9 @@ def finetune(
     La loss ne porte que sur les tokens du mot cible.
 
     - masked_dims : dimensions de l'embedding à neutraliser (entrée + notation).
+    - mask_dropout : si > 0, chaque pas tire un nouveau masque aléatoire de
+      cette proportion de dimensions (en plus de masked_dims), comme un
+      dropout sur les colonnes de l'embedding. La validation se fait sans.
     - val_corpus : si fourni, on garde les poids de l'évaluation qui a la
       plus faible loss de validation.
     - eval_every : nombre de pas entre deux évaluations sur val_corpus.
@@ -431,6 +441,16 @@ def finetune(
         if val_corpus is not None
         else None
     )
+
+    hidden_size = model.config.hidden_size
+    dropout_generator = torch.Generator().manual_seed(seed + 1)
+
+    def step_mask():
+        if not mask_dropout:
+            return dim_mask
+        drawn = random_masked_dims(hidden_size, mask_dropout, dropout_generator)
+        drawn_mask = make_dim_mask(drawn, hidden_size, device)
+        return drawn_mask if dim_mask is None else dim_mask * drawn_mask
 
     loader = DataLoader(
         train_data,
@@ -494,7 +514,7 @@ def finetune(
         )
 
         for batch in progress:
-            loss, n_tokens = train_step(model, optimizer, batch, dim_mask)
+            loss, n_tokens = train_step(model, optimizer, batch, step_mask())
 
             step += 1
             running_loss += loss * n_tokens
