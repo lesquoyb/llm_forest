@@ -1,0 +1,82 @@
+{
+  "28M seul": {
+    "grammar": 2.5976704,
+    "consistency": 2.6266754,
+    "creativity": 2.6562652,
+    "plot": 2.7824162,
+    "words": 111.456,
+    "repeated_trigrams": 0.016702284765789638,
+    "distinct_2": 0.46188527558484826,
+    "perplexity": 3.639233440676188
+  },
+  "28M seul, 10 masques d'inf\u00e9rence": {
+    "grammar": 2.5882988,
+    "consistency": 2.6259982,
+    "creativity": 2.6583104,
+    "plot": 2.759878,
+    "words": 104.37,
+    "repeated_trigrams": 0.012969286683421266,
+    "distinct_2": 0.5068782045080777,
+    "perplexity": 3.744307524690397
+  },
+  "28M fine-tun\u00e9 (1 membre)": {
+    "grammar": 2.6150774,
+    "consistency": 2.6430492,
+    "creativity": 2.6791828,
+    "plot": 2.7780489999999998,
+    "words": 115.428,
+    "repeated_trigrams": 0.02106581172946321,
+    "distinct_2": 0.4562694445415458,
+    "perplexity": 4.062439725724902
+  },
+  "For\u00eat 5 \u00d7 28M": {
+    "grammar": 2.6109704000000002,
+    "consistency": 2.6434914,
+    "creativity": 2.675941,
+    "plot": 2.797075,
+    "words": 109.346,
+    "repeated_trigrams": 0.015478134748803373,
+    "distinct_2": 0.4751998227899507,
+    "perplexity": 3.5886494575861043
+  },
+  "For\u00eat 10 \u00d7 28M": {
+    "grammar": 2.6015306000000002,
+    "consistency": 2.630451,
+    "creativity": 2.6681254,
+    "plot": 2.7781401999999997,
+    "words": 108.886,
+    "repeated_trigrams": 0.014276777005318268,
+    "distinct_2": 0.47151623009472965,
+    "perplexity": 3.533477586173989
+  },
+  "For\u00eat 5 \u00d7 28M, masque 12,5 %": {
+    "grammar": 2.5907772,
+    "consistency": 2.6291196,
+    "creativity": 2.6591424000000004,
+    "plot": 2.7798578000000003,
+    "words": 110.736,
+    "repeated_trigrams": 0.014268398311438524,
+    "distinct_2": 0.4842166654516294,
+    "perplexity": 3.6457165178862385
+  },
+  "For\u00eat 10 \u00d7 28M, masque 12,5 %": {
+    "grammar": 2.591941,
+    "consistency": 2.6266356,
+    "creativity": 2.6616451999999997,
+    "plot": 2.7800698,
+    "words": 111.614,
+    "repeated_trigrams": 0.0144747300220198,
+    "distinct_2": 0.48183774205796737,
+    "perplexity": 3.5751826933467785
+  },
+  "33M seul": {
+    "grammar": 2.6142993999999997,
+    "consistency": 2.6340022,
+    "creativity": 2.6734076,
+    "plot": 2.7804029999999997,
+    "words": 115.146,
+    "repeated_trigrams": 0.019716104126613104,
+    "distinct_2": 0.45737914600599233,
+    "perplexity": 3.652917823991539
+  }
+}

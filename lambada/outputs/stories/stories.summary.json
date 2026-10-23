@@ -1,0 +1,50 @@
+{
+  "28M seul": {
+    "perplexity": 3.639233440676188,
+    "n_members": 1,
+    "n_views": 1,
+    "time_s": 60.863030200009234
+  },
+  "28M seul, 10 masques d'inf\u00e9rence": {
+    "perplexity": 3.744307524690397,
+    "n_members": 1,
+    "n_views": 10,
+    "time_s": 530.299786800053
+  },
+  "28M fine-tun\u00e9 (1 membre)": {
+    "perplexity": 4.062439725724902,
+    "n_members": 1,
+    "n_views": 1,
+    "time_s": 60.51551929989364
+  },
+  "For\u00eat 5 \u00d7 28M": {
+    "perplexity": 3.5886494575861043,
+    "n_members": 5,
+    "n_views": 5,
+    "time_s": 261.6872802999569
+  },
+  "For\u00eat 10 \u00d7 28M": {
+    "perplexity": 3.533477586173989,
+    "n_members": 10,
+    "n_views": 10,
+    "time_s": 541.3803857000312
+  },
+  "For\u00eat 5 \u00d7 28M, masque 12,5 %": {
+    "perplexity": 3.6457165178862385,
+    "n_members": 5,
+    "n_views": 5,
+    "time_s": 275.8728213000577
+  },
+  "For\u00eat 10 \u00d7 28M, masque 12,5 %": {
+    "perplexity": 3.5751826933467785,
+    "n_members": 10,
+    "n_views": 10,
+    "time_s": 553.9627761000302
+  },
+  "33M seul": {
+    "perplexity": 3.652917823991539,
+    "n_members": 1,
+    "n_views": 1,
+    "time_s": 41.02501999994274
+  }
+}

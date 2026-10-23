@@ -1,0 +1,24 @@
+{
+ "judgments": {
+  "0": "A",
+  "1": "A",
+  "2": "A",
+  "3": "A",
+  "4": "A",
+  "6": "A",
+  "14": "A",
+  "17": "A",
+  "18": "A",
+  "20": "A",
+  "7": "B",
+  "10": "B",
+  "15": "B",
+  "19": "B",
+  "21": "B",
+  "22": "B"
+ },
+ "forest_preferred": 5,
+ "single_preferred": 11,
+ "ties": 8,
+ "judge": "Claude, à l'aveugle, cohérence + grammaire"
+}

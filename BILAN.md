@@ -262,7 +262,7 @@ Deux stratégies : « low » tire les dimensions masquées parmi les 32 moins in
 | 12,5 % | weighted | 24,14 % | 26,47 % | 27,20 % | 1 683 |
 
 - **Weighted fait un peu mieux qu'aléatoire, régulièrement** : environ +0,4 point à toutes les tailles, et une perplexité 2 à 4 % plus basse, sur le test comme sur la sélection.
-- **La deuxième graine ne confirme pas le gain en précision.** À 6,25 % et 50 membres, weighted fait 26,97 % contre 27,12 % pour aléatoire (graine 1), après 27,55 % contre 27,16 % (graine 0). Seule la perplexité reste un peu plus basse avec weighted pour les deux graines (−1 à −3 %). Conclusion : **le guidage par la sensibilité pré-fine-tuning n'apporte rien de mesurable**.
+- **La deuxième graine ne confirme pas le gain en précision.** À 6,25 % et 50 membres, weighted fait 26,97 % contre 27,12 % pour aléatoire (graine 1), après 27,55 % contre 27,16 % (graine 0). Seule la perplexité reste un peu plus basse avec weighted pour les deux graines (−1 à −3 %). Conclusion : **le guidage par la sensibilité pré-fine-tuning n'apporte rien de mesurable**. Les masques doivent rester aléatoires : ce qui compte est qu'ils diffèrent d'un membre à l'autre, pas les dimensions qu'ils touchent.
 - **Low ne marche pas** : se limiter aux 32 dimensions les moins influentes réduit la diversité des masques, ce qui coûte plus que la protection des dimensions importantes.
 - **Un membre seul est aussi bon quel que soit le guidage** (~13,3 %) : le fine-tuning compense le masque. Le gain éventuel de weighted vient de la forêt, pas des membres.
 
@@ -410,3 +410,186 @@ Le projet est dans `finetuningboolq/`, en deux dossiers indépendants (`boolq/` 
 | `sensitivity.py` | Analyse de sensibilité de l'embedding (Morris, Sobol) | `openai/sensitivity_*/` |
 
 En route, deux fuites de mémoire GPU ont été corrigées. Les masques d'attention constants étaient dupliqués dans chaque copie du modèle, et chaque membre gardait ses gradients après l'entraînement. Elles divisaient la vitesse par 10 à 20 sur les grosses forêts.
+
+## Session du 20–21 octobre : membres sur disque, grandes forêts, diversité, largeur
+
+Nouveau pipeline : `lambada/members.py` entraîne les membres et les enregistre sur disque (float16), puis met en cache leurs scores (top-64 et log-probabilités du token cible à 12 températures) ; `lambada/compose.py` compose n'importe quelle forêt depuis ce cache. Il reproduit l'ancien `forest_grid.py` (même membre : 14,05 % dans les deux ; 28M masque 12,5 % graine 1 : 44,35 % dans les deux). Tout est sur le test B, membres de 28M à 6 époques, 1M à 15.
+
+**Grandes forêts (28M, graine 0)**
+
+| Membres | Sans masque | Masque 12,5 % | Écart |
+| --- | --- | --- | --- |
+| 10 | 41,8 % | 42,1 % | +0,3 |
+| 20 | 42,7 % | 43,4 % | +0,7 |
+| 30 | 42,9 % | 43,9 % | +1,0 |
+| 40 | 43,0 % | 44,1 % | +1,2 |
+| 50 | 43,1 % | 44,5 % | +1,4 |
+| 60 | 43,3 % (ppl 116) | 44,7 % (ppl 108) | +1,4 |
+
+- L'écart grandit jusqu'à 50 membres puis se stabilise vers +1,4 point. Sans masque, la forêt plafonne vers 43 %.
+- **Une température n'aide plus une forêt** : la perplexité de sélection est minimale à T = 1 (les modèles seuls, eux, préfèrent T = 1,4 à 1,8). Moyenner corrige déjà la sur-confiance.
+- **1M jusqu'à 100 membres** : bagging seul 27,6 %, masque 6,25 % 27,9 % ; plateau vers 80 membres pour les deux.
+
+**Sources de diversité (28M, 30 membres, 2 graines)**
+
+| Forêt | Membre seul | Graine 0 | Graine 1 | Perplexité |
+| --- | --- | --- | --- | --- |
+| Bootstrap, sans masque | 33 % | 42,96 % | 42,80 % | 127 |
+| Sans bootstrap, sans masque | 36 % | 42,96 % | 43,07 % | 131 |
+| Bootstrap + masque fixe 12,5 % | 31 % | 44,00 % | 44,35 % | 116–119 |
+| Sans bootstrap + masque fixe 12,5 % | 34 % | 44,35 % | 43,54 % | 109–110 |
+| Bootstrap + masque tiré à chaque pas 12,5 % | 35 % | **44,59 %** | **44,66 %** | **100** |
+| Idem + 5 masques d'inférence par membre | 36 % | 43,81 % | – | 92 |
+
+- **Le masque tiré à chaque pas fait la meilleure forêt**, pour les deux graines : 44,6 % et une perplexité de 100 à 30 membres, autant qu'une forêt de 60 membres à masque fixe. Ses membres seuls sont aussi plus forts (35 % contre 31 %).
+- **Le bootstrap n'apporte pas de diversité** : sans masque, la forêt est la même avec ou sans. La graine (ordre des batches) suffit. Avec masque fixe, le résultat sans bootstrap varie selon la graine.
+- **Masque tiré à chaque pas sans bootstrap** (30 membres) : 43,46 % (6,25 %), 43,58 % (12,5 %), 43,62 % (25 %), 43,93 % (12,5 %, graine 1). Les membres seuls sont les meilleurs jamais mesurés (36–37 %), mais la forêt perd environ 1 point par rapport à la version avec bootstrap (44,6 %), quelle que soit la proportion. Ce masque rend les membres plus forts et plus semblables ; le bootstrap leur rend de la diversité.
+- **Les masques d'inférence n'ajoutent rien à une forêt** : ils baissent la perplexité mais pas la précision, pour un coût 5 fois plus grand.
+
+**Largeur de l'embedding**
+
+Robustesse d'un modèle fine-tuné sur tout l'entraînement à UN masque d'entrée (perte relative de précision) :
+
+| Modèle (largeur) | Seul | Masque 12,5 % | Masque 25 % | Meilleur ensemble de 10 masques |
+| --- | --- | --- | --- | --- |
+| 1M (64) | 18,2 % | −58 % | −86 % | 19,8 % (6,25 %) |
+| 3M (128) | 26,2 % | −24 % | −51 % | 28,6 % (6,25 %) |
+| 8M (256) | 32,7 % | −11 % | −29 % | 35,7 % (12,5 %) |
+| 28M (512) | 35,8 % | −9 % | −23 % | 37,7 % (12,5 %) |
+| 33M (768, 4 couches) | 33,6 % | −8 % | −26 % | 36,2 % (12,5 %) |
+
+Forêts de 20 membres (bootstrap, masque fixe) :
+
+| Modèle | Sans masque | 6,25 % | 12,5 % | 25 % |
+| --- | --- | --- | --- | --- |
+| 3M | 35,2 % | 35,6 % | 35,0 % | 35,3 % |
+| 8M | **42,0 %** | 41,2 % | 41,3 % | 39,9 % |
+| 28M | 42,7 % | 42,8 % | 43,4 % | 42,4 % |
+| 33M | 39,4 % | 40,8 % | 41,3 % | **42,4 %** |
+
+- **Un modèle large supporte mieux un masque** : la perte chute entre 64 et 256 dimensions, puis se stabilise.
+- **Mais le gain du masque dans la forêt ne suit pas la largeur.** Rien sur le 3M, une perte sur le 8M, +0,7 sur le 28M, +3 sur le 33M.
+- **Hypothèse** : le masque aide surtout quand les membres sans masque sont trop semblables. La forêt de 33M sans masque plafonne très tôt (38,9 % à 10 membres, 39,4 % à 20). Suivi sur le 33M :
+
+| 33M | 10 membres | 20 | 30 | 40 |
+| --- | --- | --- | --- | --- |
+| Sans masque | 38,8 % | 39,3 % | 39,6 % | 39,5 % (ppl 170) |
+| Masque fixe 25 % | 40,8 % | 42,1 % | 42,9 % | **43,5 %** (ppl 137) |
+| Masque fixe 37,5 % | 39,4 % | 41,4 % | – | – |
+| Masque tiré à chaque pas 25 %, sans bootstrap | 42,0 % | 42,5 % | 42,7 % | – |
+
+  - Sur le 33M, le masque de 25 % rapporte **+4 points à 40 membres**, et monte encore ; sans masque, la forêt est bloquée vers 39,5 % dès 20 membres. 37,5 % est trop fort.
+  - Sur le 8M, le masque tiré à chaque pas (sans bootstrap) fait aussi moins bien que la forêt sans masque (39,7 % contre 42,0 % à 20 membres) : le 8M ne profite d'aucun masque.
+
+**Pythia (float32, un seul modèle, sans bootstrap, lr 5e-5)**
+
+| Modèle | Paramètres | Sans fine-tuning | Fine-tuné 1 époque | 3 époques | 6 époques |
+| --- | --- | --- | --- | --- | --- |
+| TinyStories-28M | 52 M | 15,1 % (ppl 10 039) | – | – | 35,8 % (ppl 696) |
+| Pythia-70M | 70 M | 22,5 % (ppl 129) | 33,9 % (ppl 325) | 29,5 % | 31,7 % |
+| Pythia-160M | 162 M | 36,1 % (ppl 37) | 35,2 % (ppl 209) | 29,3 % | 21,9 % |
+| Pythia-410M | 405 M | **51,8 %** (ppl 11) | – | 39,3 % (ppl 117) | – |
+
+- **Pythia-410M sans fine-tuning bat largement notre meilleure forêt** (44,7 % avec 60 × 28M, soit 3 milliards de paramètres stockés) avec 8 fois moins de paramètres. Pythia-160M sans fine-tuning égale déjà le 28M fine-tuné, avec une perplexité 19 fois plus basse.
+- **Notre fine-tuning dégrade les Pythia de 160M et plus** : la perplexité explose avec les époques. Le réglage (lr 5e-5, perte sur le seul mot cible, 2 076 passages) convient aux TinyStories mais sur-apprend sur Pythia. Un réglage plus doux (lr 1e-5 et 2e-5, 1 à 3 époques) est en file.
+- Pour la comparaison 28M / Pythia-70M (même largeur, 512), le processus complet (bagging, masque fixe, masque tiré à chaque pas, 3 graines) est en file, avec 1 époque, choisie sur la sélection.
+
+**Répétitions et reproduction sur Pythia (forêts de 30 membres, bootstrap ; Pythia : 1 époque, choisie sur la sélection)**
+
+| Forêt | 28M (5 graines) | Pythia-70M (3 graines) | Pythia-160M (1 graine, 20 membres) |
+| --- | --- | --- | --- |
+| Membre seul (bagging) | 32,4 % | 31,3 % | 32,1 % |
+| Bagging seul | 42,76 % (ppl 126) | 45,26 % (ppl 39) | 45,79 % (ppl 36) |
+| Masque fixe 12,5 % | 43,92 % (ppl 118) | 46,60 % (ppl 35) | 48,35 % (ppl 34) |
+| Masque tiré à chaque pas 12,5 % | **44,49 %** (ppl 98) | **49,45 %** (ppl 37) | **50,52 %** (ppl 26) |
+
+Écart apparié au bagging seul (moyenne ± erreur-type sur les graines) :
+
+| | 28M | Pythia-70M |
+| --- | --- | --- |
+| Masque fixe | +1,16 ± 0,18 point (5 graines : +0,7 à +1,6) | +1,35 ± 0,57 (+0,2 à +2,1) |
+| Masque tiré à chaque pas | **+1,73 ± 0,11** (5 graines : +1,5 à +2,1) | **+4,19 ± 0,23** (+3,8 à +4,5) |
+
+- **Le gain du masque est confirmé** : sur 5 graines du 28M, le masque fixe gagne à chaque fois (+1,2 en moyenne), le masque tiré à chaque pas aussi, plus nettement (+1,7, erreur-type 0,1).
+- **Il se reproduit sur une autre famille, et en plus grand** : sur Pythia-70M (même largeur, 512), le masque tiré à chaque pas apporte +4,2 points ; sur Pythia-160M, +4,7 (une graine).
+- **La forêt reste très rentable sur Pythia** : 30 × Pythia-70M fine-tunés font 49,5 %, contre 33,9 % pour un seul fine-tuné et 22,5 % sans fine-tuning. 20 × Pythia-160M font 50,5 %, contre 36,1 % sans fine-tuning.
+- **Mais Pythia-410M seul, sans fine-tuning, fait encore mieux (51,8 %)** que 20 × Pythia-160M (3,2 milliards de paramètres stockés). À budget de paramètres égal, un modèle plus gros et bien pré-entraîné reste devant ; la forêt s'en approche à 1,3 point avec des modèles 2,5 fois plus petits.
+
+**Correctif majeur : le taux d'apprentissage de Pythia était mauvais**
+
+| Fine-tuning seul (toutes les données) | lr 5e-5, 1 époque | lr 2e-5, 1 époque | **lr 1e-5, 1 époque** | lr 1e-5, 2 époques |
+| --- | --- | --- | --- | --- |
+| Pythia-70M | 33,9 % | 42,1 % | **46,7 %** (ppl 32) | 44,4 % |
+| Pythia-160M | 35,2 % | 50,2 % | **59,0 %** (ppl 10) | 58,4 % |
+
+- Avec lr 1e-5, **un seul Pythia-160M fine-tuné fait 59,0 %**, mieux que toutes nos forêts et que Pythia-410M sans fine-tuning (51,8 %). Un seul Pythia-70M fait 46,7 %, mieux que ses forêts à lr 5e-5 en bagging seul (45,3 %).
+- **Les forêts Pythia ci-dessus sont donc à refaire** : leurs membres étaient sur-entraînés, et une partie du gain de la forêt corrigeait ce défaut. Elles sont relancées à lr 1e-5, 1 époque (Pythia-70M, 3 graines ; Pythia-160M, 2 graines).
+- **Le taux d'apprentissage du 28M n'a jamais été réglé non plus** (5e-5 depuis le début, seules les époques l'ont été) : balayage lr 1e-5 / 2e-5 / 1e-4 × 2 / 4 / 6 époques en file, puis forêts refaites au meilleur réglage.
+- **Masques d'inférence sur Pythia sans fine-tuning** : aucun gain (410M : 51,8 % → 51,9 % ; 70M et 160M : perte).
+
+**Forêts Pythia refaites au bon réglage (lr 1e-5, 1 époque)**
+
+| Forêt | Pythia-70M (30 membres, 3 graines) | Pythia-160M (20 membres, 2 graines) |
+| --- | --- | --- |
+| Un modèle fine-tuné sur tout | 46,7 % (ppl 32) | 59,0 % (ppl 10) |
+| Membre seul (bootstrap) | 45,0 % | 56,9 % |
+| Bagging seul | 49,66 % (ppl 17,6) | 63,39 % (ppl 5,8) |
+| Masque fixe 12,5 % | 49,98 % (ppl 19,9) | – |
+| Masque tiré à chaque pas 12,5 % | **52,31 %** (ppl 25,3) | **65,56 %** (ppl 6,1) |
+
+Écart apparié au bagging seul : masque fixe +0,32 ± 0,41 (Pythia-70M, non significatif) ; masque tiré à chaque pas **+2,65 ± 0,12** (Pythia-70M) et **+2,17 ± 0,50** (Pythia-160M).
+
+- **Bien réglée, la forêt garde un gros gain** : +3 points sur Pythia-70M, +4,4 sur Pythia-160M par rapport au meilleur modèle seul fine-tuné.
+- **Le masque tiré à chaque pas reste le meilleur réglage partout** : +2,2 à +2,7 points sur Pythia, +1,7 sur le 28M. Ses membres seuls sont aussi meilleurs (Pythia-70M : 49 % contre 45 %). Curiosité : il fait monter la perplexité sur Pythia-70M (25 contre 18) tout en améliorant la précision.
+- **Le masque fixe ne sert plus à rien sur Pythia bien réglé** (+0,3, non significatif) : son gain observé à lr 5e-5 venait en partie de la correction de membres sur-entraînés.
+- **20 × Pythia-160M (65,6 %) bat largement Pythia-410M sans fine-tuning (51,8 %).** Pythia-410M fine-tuné au même réglage est en file pour la comparaison à budget égal.
+- **28M au meilleur réglage du modèle seul** (lr 2e-5, 4 époques ; 37,2 % seul contre 35,8 % à lr 5e-5) : la forêt en bagging seul **baisse** (40,9 % sur 3 graines, contre 42,8 % à lr 5e-5), alors que ses membres sont meilleurs (35,2 % contre 32,4 %). Un taux plus faible laisse les membres plus près du même point de départ, donc plus semblables. La forêt à masque tiré à chaque pas ne bouge pas (44,5 %, +3,6 ± 0,3 sur le bagging). Le meilleur réglage pour un modèle seul n'est pas le meilleur pour une forêt.
+- **Pythia-410M fine-tuné (lr 1e-5, 1 époque) : 70,7 %** (ppl 4,4), contre 51,8 % sans fine-tuning. Il bat largement 20 × Pythia-160M (65,6 %), qui stockent 8 fois plus de paramètres.
+
+**Génération d'histoires** (`lambada/story_forest.py`, 50 débuts d'histoires du jeu de validation TinyStories × 10 suites à T = 1 ; membres fine-tunés une époque sur un bootstrap de 10 000 histoires, lr 5e-5)
+
+| Configuration | Grammaire | Cohérence | Intrigue | Perplexité (histoires inédites) |
+| --- | --- | --- | --- | --- |
+| 28M seul | 2,60 | 2,63 | 2,78 | 3,64 |
+| 28M seul, 10 masques d'inférence | 2,59 | 2,63 | 2,76 | 3,74 |
+| 28M fine-tuné (1 membre) | 2,62 | 2,64 | 2,78 | 4,06 |
+| Forêt 10 × 28M | 2,60 | 2,63 | 2,78 | **3,53** |
+| Forêt 10 × 28M, masque 12,5 % | 2,59 | 2,63 | 2,78 | 3,58 |
+| 33M seul | 2,61 | 2,63 | 2,78 | 3,65 |
+
+Notes de Laya sur 4 (0 = très mauvais, 4 = excellent).
+
+- **Laya ne voit aucune différence** : tous les écarts appariés au 28M seul sont inférieurs à 0,02 point (erreur-type 0,025), y compris pour le 33M. Sans fine-tuning, Laya n'est pas assez fin pour ce niveau de qualité : il sépare une histoire correcte d'une histoire incohérente, pas deux histoires correctes.
+- **Seule la perplexité bouge** : la forêt de 10 est 3 % meilleure que le 28M seul, et bien meilleure que son membre seul (dont le fine-tuning à lr 5e-5 dégrade le modèle).
+- **Contrôle à l'aveugle (Claude)** sur 24 paires (28M seul contre forêt de 10, même début) : 11 préférences pour le 28M seul, 5 pour la forêt, 8 égalités. Pas significatif (test du signe, p ≈ 0,2), mais pas d'indice que la forêt écrive mieux. Moyenner aplatit les distributions ; en tirage à T = 1, cela peut rendre le texte un peu plus erratique.
+- Pour conclure, il faudrait un juge plus fin (Laya fine-tuné sur des notes, ou un LLM fort), des membres fine-tunés à un meilleur taux d'apprentissage, et comparer aussi en décodage moins aléatoire (T < 1).
+
+**Correction** : les premiers runs Pythia ont tourné en float16 (format par défaut de leurs poids) ; `load_base` force maintenant le float32 et ils sont relancés.
+
+## Le masque tiré à chaque pas accélère-t-il le fine-tuning ?
+
+`lambada/mask_convergence.py` : modèle seul sur toutes les données, précision de sélection toutes les demi-époques, 3 graines par case (moyennes). « Pas » = pas où le meilleur score est atteint (130 pas = 1 époque).
+
+| Modèle, lr | Sans masque : meilleur (pas) | Masque 12,5 % par pas : meilleur (pas) | Écart |
+| --- | --- | --- | --- |
+| 28M, 1e-5 | 36,7 % (238) | 40,5 % (672) | +3,8 |
+| 28M, 2e-5 | 39,1 % (433) | **40,7 %** (433) | +1,6 |
+| 28M, 5e-5 | 37,6 % (585) | 37,9 % (715) | +0,3 |
+| 28M, 1e-4 | 31,9 % (650) | 31,9 % (477) | 0 |
+| Pythia-70M, 5e-6 | 47,7 % (130) | **50,0 %** (303) | +2,3 |
+| Pythia-70M, 1e-5 | 47,1 % (65) | 48,3 % (87) | +1,2 |
+| Pythia-70M, 2e-5 | 42,9 % (108) | 47,4 % (65) | +4,5 |
+| Pythia-70M, 5e-5 | 36,1 % (325) | 40,0 % (173) | +3,9 |
+| Pythia-160M, 5e-6 | **60,4 %** (173) | 60,3 % (173) | −0,1 |
+| Pythia-160M, 1e-5 | 56,9 % (130) | 57,9 % (130) | +1,0 |
+| Pythia-160M, 2e-5 | 49,5 % (87) | 54,7 % (173) | +5,2 |
+| Pythia-160M, 5e-5 | 32,3 % (130) | 36,2 % (130) | +3,9 |
+
+- **Pas de convergence plus rapide** : le meilleur point arrive au même moment ou plus tard avec le masque.
+- **Le masque rend le fine-tuning plus tolérant au taux d'apprentissage** : il rattrape 4 à 5 points quand le taux est trop fort, et la chute après le pic est plus faible. C'est la signature d'une régularisation.
+- **Au meilleur taux, le gain diminue avec la taille** : +1,6 (28M), +2,3 (Pythia-70M), −0,1 (Pythia-160M).
+- **Le bon taux pour Pythia est encore plus bas que 1e-5** : 5e-6 est le meilleur pour 70M et 160M, avec un pic avant la fin de la première époque. Le protocole « même objectif » inclut ce taux.
+
+## Pistes pour la suite
+
+Détaillées dans le document « Random LLM Forest — pistes à explorer » : https://claude.ai/code/artifact/dbbf783a-de11-4d94-8547-587c629e99c0

@@ -397,6 +397,7 @@ def finetune(
     eval_every=None,
     verbose=True,
     desc="Fine-tuning",
+    on_epoch_end=None,
 ):
     """
     Fine-tune `model` sur `corpus` (LAMBADA brut ou liste d'`Example`).
@@ -413,6 +414,9 @@ def finetune(
       None = une évaluation à la fin de chaque epoch.
     - copy_model : entraîne une copie, le modèle passé en argument n'est pas
       modifié.
+    - on_epoch_end : fonction appelée avec (modèle, numéro d'époque à partir
+      de 1) à la fin de chaque époque, en mode évaluation (ex. pour noter le
+      modèle à chaque époque sans le sauvegarder).
 
     Retourne un `MaskedLM` (modèle entraîné, masque, historique, temps
     d'entraînement en secondes, évaluations de validation comprises).
@@ -535,6 +539,14 @@ def finetune(
         if verbose:
             print(message)
 
+        if on_epoch_end is not None:
+            _sync(device)
+            compute_s += time.perf_counter() - last_mark
+            model.eval()
+            on_epoch_end(model, epoch + 1)
+            model.train()
+            last_mark = time.perf_counter()
+
     if best_state is not None:
         model.load_state_dict(best_state)
 
@@ -544,6 +556,7 @@ def finetune(
 
     _sync(device)
     tuned.train_time_s = time.perf_counter() - start
+    history["compute_s"] = compute_s + time.perf_counter() - last_mark  # sans évaluations ni rappels
     tuned.history = history
 
     model.eval()

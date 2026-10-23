@@ -1,0 +1,11 @@
+{
+  "model": "roneneldan/TinyStories-28M",
+  "n": 10,
+  "mask_fraction": 0.0,
+  "epochs": 1,
+  "batch_size": 8,
+  "lr": 5e-05,
+  "seed": 0,
+  "dir": "lambada/outputs/stories/story_28M_f0",
+  "func": null
+}
